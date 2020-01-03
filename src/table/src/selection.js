@@ -55,6 +55,8 @@ export function removeSelectionStyle() {
 }
 
 export function addSelectionStyle(editor) {
+  removeSelection(editor);
+
   // HACK: Add ::selection style when greater than 1 cells selected.
   if (!document.querySelector(`style#${insertStyleId}`)) {
     const style = document.createElement('style');
@@ -80,7 +82,6 @@ export function addSelectionStyle(editor) {
     match: n => n.type === defaultOptions.typeTable,
   })];
   if (!table) return;
-  const tableDepth = table[1].length;
 
   let cells = [...Editor.nodes(editor, {
     at: table[1],
@@ -89,16 +90,12 @@ export function addSelectionStyle(editor) {
   
   if (!cells || !cells.length) return;
 
-  cells = cells.map(([cell, path]) => ([cell, path.slice(tableDepth)]));
-
   let headPath = [];
   let tailPath = [];
   selection.anchor.path.forEach((item, index) => {
     headPath.push(Math.min(item, selection.focus.path[index]));
     tailPath.push(Math.max(item, selection.focus.path[index]));
   });
-  headPath = headPath.slice(tableDepth);
-  tailPath = tailPath.slice(tableDepth);
 
   const coverCellsPath = [];
   cells.forEach(([cell, path]) => {
@@ -115,12 +112,13 @@ export function addSelectionStyle(editor) {
   })
 
   coverCellsPath.forEach(([, path]) => {
-    const at = table[1].concat(path);
     Transforms.setNodes(editor, {
       selectionColor: 'rgb(185, 211, 252)',
     }, {
-      at,
+      at: path,
       match: n => n.type === defaultOptions.typeCell,
     });
   });
+
+  return coverCellsPath;
 }

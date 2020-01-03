@@ -6,7 +6,7 @@ import {
 import { ComponentStore } from './store';
 import { removeSelection, addSelectionStyle } from './selection';
 import { useResizableTable } from './use-resizable';
-import { defaultOptions as opts } from './option';
+import { defaultOptions } from './option';
 import { HistoryEditor } from 'slate-history';
 import * as table from './layout';
 
@@ -14,9 +14,12 @@ import * as table from './layout';
 
 // 表格组件
 const Table = forwardRef((props, tableRef) => {
-  const [disableResizing, forceUpdate] = React.useState(false);
+  const [disableResizing, forceUpdate] = useState(false);
   const maxWidth = typeof props.maxWidth === 'undefined' ? 'auto' : props.maxWidth + 'px';
   const editor = useEditor();
+  const [selection, setSelection] = useState([]);
+
+  console.log('💡', selection);
 
   // const onInit = useCallback((values) => {
   //   console.log('onInit')
@@ -78,14 +81,15 @@ const Table = forwardRef((props, tableRef) => {
 
   useEffect(() => {
     if (allowSelection) {
-      addSelectionStyle(editor);
+      const cells = addSelectionStyle(editor);
+      setSelection(cells);
     }
   }, [allowSelection, editor, editor.selection]);
 
   const onClearSelection = useCallback(e => {
-    removeSelection(props.editor);
+    removeSelection(editor);
     setAllowSelection(!!e.target.closest('*[slate-table-element]'));
-  }, [props.editor]);
+  }, []);
 
   useEffect(() => {
     window.addEventListener('mousedown', onClearSelection);
@@ -270,7 +274,7 @@ const updateWidth = (editor, value) => {
   });
 
   // function fn(node, handler) {
-  //   if (node.type === opts.typeCell) {
+  //   if (node.type === defaultOptions.typeCell) {
   //     handler(node);
   //     return [node];
   //   }
@@ -284,7 +288,7 @@ const updateWidth = (editor, value) => {
   // }
 
   // editor.children.forEach(node => {
-  //   if (node.type === opts.typeTable) {
+  //   if (node.type === defaultOptions.typeTable) {
   //     fn(
   //       node,
   //       (node) => {
@@ -305,7 +309,7 @@ export const TableElement = (props) => {
   const store = new ComponentStore();
 
   switch (element.type) {
-    case opts.typeTable: {
+    case defaultOptions.typeTable: {
       return (
         <Table
           // ref={ref}
@@ -316,8 +320,8 @@ export const TableElement = (props) => {
           onUpdate={updateWidth}
           onResizeStop={updateWidth}
           // maxWidth={null}
-          minimumCellWidth={opts.minimumCellWidth}
-          style={opts.tableStyle}
+          minimumCellWidth={defaultOptions.minimumCellWidth}
+          style={defaultOptions.tableStyle}
           attributes={attributes}
         >
           <tbody slate-table-element="tbody">{children}</tbody>
@@ -325,12 +329,12 @@ export const TableElement = (props) => {
       )
     }
 
-    case opts.typeRow: {
+    case defaultOptions.typeRow: {
       return (
         <tr
           {...attributes}
           data-key={element.key}
-          style={opts.rowStyle}
+          style={defaultOptions.rowStyle}
           onDrag={e => e.preventDefault()}
         // type={element.type}
         >
@@ -339,7 +343,7 @@ export const TableElement = (props) => {
       );
     }
 
-    case opts.typeCell: {
+    case defaultOptions.typeCell: {
       return (
         <Cell
           // type={element.type}
@@ -348,14 +352,14 @@ export const TableElement = (props) => {
           store={store}
           node={children.props.node}
           attributes={attributes}
-          opts={opts}
+          opts={defaultOptions}
         >
           {children}
         </Cell>
       );
     }
 
-    case opts.typeContent: {
+    case defaultOptions.typeContent: {
       return (
         <Content
           // type={element.type}

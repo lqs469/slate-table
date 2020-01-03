@@ -6,6 +6,7 @@ import insertLeft from './insertLeft';
 import removeTable from './removeTable';
 import removeColumn from './removeColumn';
 import removeRow from './removeRow';
+import mergeSelection from './mergeSelection';
 
 export default {
   insertTable,
@@ -15,5 +16,6 @@ export default {
   insertLeft,
   removeTable,
   removeColumn,
-  removeRow
+  removeRow,
+  mergeSelection,
 };
