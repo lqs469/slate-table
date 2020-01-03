@@ -32,7 +32,7 @@ export const useResizableTable = (props) => {
     if (size) {
       props.onInit && props.onInit(size);
     }
-  }, []);
+  }, [props]);
 
   const update = () => {
     if (!ref.current) return;
@@ -52,7 +52,7 @@ export const useResizableTable = (props) => {
       if (isResizing) return;
       const tagname = e.target.tagName.toLowerCase();
       if (tagname !== 'td' && tagname !== 'th') return;
-      
+
       // if (!parent) return;
 
       const firstRow = getFirstRow(table);
@@ -150,7 +150,7 @@ export const useResizableTable = (props) => {
       table.removeEventListener('mouseover', onTableMouseOver);
       table.removeEventListener('mouseout', onTableMouseOut);
     };
-  }, [props.disableResizing, ref.current]);
+  }, [props, props.disableResizing]);
 
   return { ref, update };
 };

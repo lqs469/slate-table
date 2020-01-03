@@ -19,26 +19,23 @@ const Table = forwardRef((props, tableRef) => {
   const editor = useEditor();
 
   // const onInit = useCallback((values) => {
-  //   props.onInit(editor, values);
-  // }, [editor]);
-
-  useEffect(() => {
-    if (!ref.current) {
-      ref.current = props.attributes && props.attributes.ref && props.attributes.ref.current;
-    }
-    update();
-  }, []);
+  //   console.log('onInit')
+  //   props.onUpdate(editor, values);
+  // }, []);
 
   const onUpdate = useCallback((values) => {
+    console.log('onUpdate')
     props.onUpdate(editor, values);
-  }, [editor]);
+  }, [editor, props]);
 
   const onResizeStop = useCallback((e, values) => {
+    console.log('onResizeStop')
     // editor.blur && editor.blur();
     props.onResizeStop(editor, values);
-  }, [editor]);
+  }, [editor, props]);
 
   const onResizeStart = useCallback((e) => {
+    console.log('onResizeStart')
     e.stopPropagation();
     // editor.blur && editor.blur();
     removeSelection(editor);
@@ -59,6 +56,13 @@ const Table = forwardRef((props, tableRef) => {
   });
 
   // useEffect(() => {
+  //   if (!ref.current) {
+  //     ref.current = props.attributes && props.attributes.ref && props.attributes.ref.current;
+  //   }
+  //   update();
+  // }, [props.attributes, ref, update]);
+
+  // useEffect(() => {
   //   props.store.subscribeDisableResizing(editor, v => {
   //     forceUpdate(v);
   //   });
@@ -76,20 +80,19 @@ const Table = forwardRef((props, tableRef) => {
     if (allowSelection) {
       addSelectionStyle(editor);
     }
-  }, [editor.selection]);
+  }, [allowSelection, editor, editor.selection]);
 
   const onClearSelection = useCallback(e => {
     removeSelection(props.editor);
     setAllowSelection(!!e.target.closest('*[slate-table-element]'));
-  }, []);
-
+  }, [props.editor]);
 
   useEffect(() => {
     window.addEventListener('mousedown', onClearSelection);
     return () => {
       window.removeEventListener('mousedown', onClearSelection);
     }
-  }, [])
+  }, [onClearSelection]);
 
   return (
     <table
@@ -97,8 +100,8 @@ const Table = forwardRef((props, tableRef) => {
       style={{ ...props.style, maxWidth }}
       onDragStart={e => e.preventDefault()}
       slate-table-element="table"
-      // {...props.attributes}
-      // type={props.type}
+    // {...props.attributes}
+    // type={props.type}
     >
       {props.children}
     </table>
@@ -174,10 +177,10 @@ const Cell = props => {
         // const focusCellBlock = table.findCellBlockByElement(props.editor, e.target, props.opts);
         // if (!focusCellBlock) return;
         // const prevFocusBlock = props.store.getFocusCellBlock();
-        
+
         // if (focusCellBlock === prevFocusBlock) return;
         // if (focusCellBlock.key === (prevFocusBlock && prevFocusBlock.key)) return;
-        
+
 
         // const t = table.TableLayout.create(props.editor, props.opts);
         // if (!t) {
@@ -191,7 +194,7 @@ const Cell = props => {
         // addSelectionStyle(props.editor);
 
         // const blocks = table.createSelectedBlockMap(props.editor, anchorCellBlock.key, focusCellBlock.key, props.opts);
-        
+
         // HistoryEditor.withoutSaving(editor, () => {
         //   t.table.forEach(row => {
         //     row.forEach(cell => {
@@ -248,45 +251,49 @@ const Content = memo(({ attributes, children, type }) => {
 
 
 const updateWidth = (editor, value) => {
-  if (editor.selection) {
-    Object.keys(value).forEach(k => {
-      const [block] = Editor.nodes(editor, {
-        match: n => n.key === k,
-      })
-      if (!block || !block[0]) return;
-  
-      const selectedType = block[0].type;
-      const selectedData = block[0].data
-      Transforms.setNodes(editor, {
-        type: selectedType,
-        data: { ...selectedData, width: value[k] },
-      }, {
-        match: n => n.key === k,
-      });
-    });
-  } else {
-    function fn(node, handler) {
-      if (node.type !== opts.typeTable) {
-        return;
-      }
+  Object.keys(value).forEach(k => {
+    const [block] = Editor.nodes(editor, {
+      at: editor.selection ? null : [],
+      match: n => n.key === k,
+    })
+    if (!block || !block[0]) return;
 
-      if (node.type === opts.typeCell) {
-        handler(node);
-        return [node];
-      }
-      
-      const nodes = node.children.reduce((p, c) => {
-        const validNodes = fn(c, handler);
-        return [...p, ...validNodes];
-      }, []);
-      
-      return nodes;
-    }
-    
-    fn(editor, (node) => {
-      node.data = { ...node.data, width: value[node.key] };
+    const selectedType = block[0].type;
+    const selectedData = block[0].data
+    Transforms.setNodes(editor, {
+      type: selectedType,
+      data: { ...selectedData, width: value[k] },
+    }, {
+      at: editor.selection ? null : [],
+      match: n => n.key === k,
     });
-  }
+  });
+
+  // function fn(node, handler) {
+  //   if (node.type === opts.typeCell) {
+  //     handler(node);
+  //     return [node];
+  //   }
+
+  //   const nodes = node.children.reduce((p, c) => {
+  //     const validNodes = fn(c, handler);
+  //     return [...p, ...validNodes];
+  //   }, []);
+
+  //   return nodes;
+  // }
+
+  // editor.children.forEach(node => {
+  //   if (node.type === opts.typeTable) {
+  //     fn(
+  //       node,
+  //       (node) => {
+  //         node.data = { ...node.data, width: value[node.key] };
+  //       }
+  //     );
+  //   }
+  //   return node;
+  // });
 }
 
 
@@ -295,7 +302,6 @@ const updateWidth = (editor, value) => {
 export const TableElement = (props) => {
   const { attributes, children, element } = props;
   const editor = useEditor();
-  
   const store = new ComponentStore();
 
   switch (element.type) {
@@ -306,7 +312,7 @@ export const TableElement = (props) => {
           // type={element.type}
           editor={editor}
           store={store}
-          onInit={updateWidth}
+          // onInit={updateWidth}
           onUpdate={updateWidth}
           onResizeStop={updateWidth}
           // maxWidth={null}
@@ -326,13 +332,13 @@ export const TableElement = (props) => {
           data-key={element.key}
           style={opts.rowStyle}
           onDrag={e => e.preventDefault()}
-          // type={element.type}
+        // type={element.type}
         >
           {children}
         </tr>
       );
     }
-    
+
     case opts.typeCell: {
       return (
         <Cell
@@ -341,14 +347,14 @@ export const TableElement = (props) => {
           editor={editor}
           store={store}
           node={children.props.node}
-          attributes={attributes} 
+          attributes={attributes}
           opts={opts}
         >
           {children}
         </Cell>
       );
     }
-    
+
     case opts.typeContent: {
       return (
         <Content
@@ -359,7 +365,7 @@ export const TableElement = (props) => {
         </Content>
       );
     }
-    
+
     default:
       return;
   }
