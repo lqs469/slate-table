@@ -55,7 +55,7 @@ export default function insertRight(editor, opts) {
 
     path[path.length - 1]++;
 
-    const newCell = createCell(opts, '');
+    const newCell = createCell();
     Transforms.insertNodes(editor, newCell, {
       at: path,
       match: n => n.key === matchCell.key,

@@ -1,8 +1,8 @@
 // import { Block, BlockJSON, Text } from 'slate';
 import { defaultOptions } from './option';
 
-export function createCell(opts = defaultOptions, text = '') {
-  const { typeCell, typeContent, defaultColumnWidth } = opts;
+export function createCell(elements, data) {
+  const { typeCell, typeContent, defaultColumnWidth } = defaultOptions;
 
   return {
     type: typeCell,
@@ -10,14 +10,12 @@ export function createCell(opts = defaultOptions, text = '') {
     children: [
       {
         type: typeContent,
-        children: [{
-          text
-        }],
+        children: elements || [{ text: 'P' }],
       },
     ],
     data: {
       width: defaultColumnWidth,
-      // ...data,
+      ...data,
     },
   };
 }

@@ -2,9 +2,9 @@ import { Range } from 'immutable';
 import { createCell } from './create-cell';
 import { defaultOptions } from './option';
 
-export function createRow(opts, columns) {
+export function createRow(columns) {
   const cellNodes = Range(0, columns)
-    .map(() => createCell(opts, ''))
+    .map(() => createCell())
     .toArray();
 
   return {

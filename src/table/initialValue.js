@@ -3,6 +3,7 @@ export default [
     type: 'paragraph',
     children: [
       { text: 'Lorem ipsum...' },
+      { text: 'Lorem ipsum...' },
     ],
   },
   {
@@ -26,10 +27,13 @@ export default [
                 type: "editable_table_content",
                 children: [
                   {
-                    text: "a1"
-                  }
+                    type: 'paragraph',
+                    children: [
+                      { text: 'Lorem ipsum...' },
+                    ],
+                  },
                 ]
-              }
+              },
             ],
           },
           {
@@ -40,8 +44,11 @@ export default [
                 "type": "editable_table_content",
                 "children": [
                   {
-                    "text": "a2"
-                  }
+                    type: 'paragraph',
+                    children: [
+                      { text: 'a1' },
+                    ],
+                  },
                 ]
               }
             ],
@@ -57,8 +64,11 @@ export default [
                 "type": "editable_table_content",
                 "children": [
                   {
-                    "text": "a3"
-                  }
+                    type: 'paragraph',
+                    children: [
+                      { text: 'a2' },
+                    ],
+                  },
                 ]
               }
             ],
@@ -81,8 +91,11 @@ export default [
                 "type": "editable_table_content",
                 "children": [
                   {
-                    "text": "a4"
-                  }
+                    type: 'paragraph',
+                    children: [
+                      { text: 'a3' },
+                    ],
+                  },
                 ]
               }
             ],
@@ -98,8 +111,11 @@ export default [
                 "type": "editable_table_content",
                 "children": [
                   {
-                    "text": "a5"
-                  }
+                    type: 'paragraph',
+                    children: [
+                      { text: 'a4' },
+                    ],
+                  },
                 ]
               }
             ],
@@ -115,8 +131,11 @@ export default [
                 "type": "editable_table_content",
                 "children": [
                   {
-                    "text": "a6"
-                  }
+                    type: 'paragraph',
+                    children: [
+                      { text: 'a5' },
+                    ],
+                  },
                 ]
               }
             ],
@@ -139,8 +158,11 @@ export default [
                 "type": "editable_table_content",
                 "children": [
                   {
-                    "text": "a7"
-                  }
+                    type: 'paragraph',
+                    children: [
+                      { text: 'a6' },
+                    ],
+                  },
                 ]
               }
             ],
@@ -156,8 +178,11 @@ export default [
                 "type": "editable_table_content",
                 "children": [
                   {
-                    "text": "a8"
-                  }
+                    type: 'paragraph',
+                    children: [
+                      { text: 'a7' },
+                    ],
+                  },
                 ]
               }
             ],
@@ -173,8 +198,11 @@ export default [
                 "type": "editable_table_content",
                 "children": [
                   {
-                    "text": "a9"
-                  }
+                    type: 'paragraph',
+                    children: [
+                      { text: 'a8' },
+                    ],
+                  },
                 ]
               }
             ],

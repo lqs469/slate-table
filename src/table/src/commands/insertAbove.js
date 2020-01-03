@@ -39,7 +39,7 @@ export default function insertAbove(editor, opts) {
     match: n => n.type === defaultOptions.typeRow,
   });
 
-  const newRow = createRow(opts, matchRow.children.length);
+  const newRow = createRow(matchRow.children.length);
   
   Transforms.insertNodes(editor, newRow, {
     at: path,

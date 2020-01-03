@@ -17,9 +17,7 @@ const Table = forwardRef((props, tableRef) => {
   const [disableResizing, forceUpdate] = useState(false);
   const maxWidth = typeof props.maxWidth === 'undefined' ? 'auto' : props.maxWidth + 'px';
   const editor = useEditor();
-  const [selection, setSelection] = useState([]);
-
-  console.log('💡', selection);
+  // const [selection, setSelection] = useState([]);
 
   // const onInit = useCallback((values) => {
   //   console.log('onInit')
@@ -82,7 +80,7 @@ const Table = forwardRef((props, tableRef) => {
   useEffect(() => {
     if (allowSelection) {
       const cells = addSelectionStyle(editor);
-      setSelection(cells);
+      // setSelection(cells);
     }
   }, [allowSelection, editor, editor.selection]);
 
@@ -240,12 +238,12 @@ const Cell = props => {
 // 表格文本内容
 const Content = memo(({ attributes, children, type }) => {
   return (
-    <p
+    <div
       style={{ margin: 0 }}
       {...attributes}
       type={type}
-      slate-table-element="p"
-    >{children}</p>
+      slate-table-element="div"
+    >{children}</div>
   );
 });
 

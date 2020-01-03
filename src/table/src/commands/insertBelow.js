@@ -38,12 +38,12 @@ export default function insertBelow(editor, opts) {
   const [[matchRow, path]] = Editor.nodes(editor, {    
     match: n =>  n.type === defaultOptions.typeRow,
   });
-  const newRow = createRow(opts, matchRow.children.length);
+  const newRow = createRow(matchRow.children.length);
   
   path[path.length - 1]++;
   
   Transforms.insertNodes(editor, newRow, {
     at: path,
-    match: { key: matchRow.key },
+    match: n => n.key === matchRow.key,
   });
 }

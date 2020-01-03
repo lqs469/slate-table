@@ -53,7 +53,7 @@ export default function insertLeft(editor, opts) {
       match: n => n.type === defaultOptions.typeCell,
     });
 
-    const newCell = createCell(opts, '');
+    const newCell = createCell();
     Transforms.insertNodes(editor, newCell, {
       at: path,
       match: n => n.key === matchCell.key,

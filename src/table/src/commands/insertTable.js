@@ -2,10 +2,10 @@ import { Editor, Transforms } from 'slate';
 import { createTable } from '../create-table';
 // import { Option } from '../option';
 
-function insertTable(editor, opts, columns = 3, rows = 3) {
+function insertTable(editor, columns = 3, rows = 3) {
   // if (editor.selection.anchor.offset) return false;
 
-  const table = createTable(opts, columns, rows);
+  const table = createTable(columns, rows);
   // const text = {
   //   object: 'block',
   //   type: 'paragraph',
