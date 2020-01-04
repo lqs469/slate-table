@@ -45,6 +45,7 @@ export default function mergeSelection(editor) {
 
   let rowCount = 0;
   let colCount = 0;
+  let widthCount = 0;
   const baseRow = head[1].slice(tableDepth)[0];
   const baseCol = head[1].slice(tableDepth)[1];
 
@@ -66,12 +67,13 @@ export default function mergeSelection(editor) {
     row.forEach(([col]) => {
       currCol += (+col.data.colspan || 1);
       currRow = Math.max(currRow, +col.data.rowspan || 1);
+      widthCount += +col.data.width;
     });
     colCount = Math.max(colCount, currCol);
     rowCount += currRow;
   })
 
-  selectedCells.forEach(([cell, at]) => {
+  selectedCells.forEach(([cell]) => {
     Transforms.removeNodes(editor, {
       at: table[1],
       match: n => n.key === cell.key,
@@ -81,6 +83,7 @@ export default function mergeSelection(editor) {
   const newCell = createCell(tmpContent, {
     colspan: colCount,
     rowspan: rowCount,
+    width: widthCount,
   });
 
   Transforms.insertNodes(editor, newCell, {
