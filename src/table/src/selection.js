@@ -75,59 +75,17 @@ export function addSelectionStyle(editor) {
     }
   }
 
-
   const { selection } = editor;
   if (!selection) return;
 
   const [table] = [...Editor.nodes(editor, {
     match: n => n.type === defaultOptions.typeTable,
   })];
-  if (!table) return;
 
+  if (!table) return;
   const tableDepth = table[1].length;
 
-  let cells = [...Editor.nodes(editor, {
-    at: table[1],
-    match: n => n.type === defaultOptions.typeCell,
-  })];
-  
-  if (!cells || !cells.length) return;
-
-  const cellMap = {};
-  const cellReMap = {};
-
-  for (let i = 0; i < cells.length; i++) {
-    const [cell, path] = cells[i];
-    
-    if (cell.data && +cell.data.colspan > 1) {
-      const y = path[tableDepth];
-      for (let j = i + 1; j < cells.length; j++) {
-        const [, _p] = cells[j];
-        if (_p[tableDepth] === y) {
-          const key = cells[j][1].join('');
-          cells[j][1][tableDepth + 1] += (+cell.data.colspan - 1);
-          const value = cells[j][1].join('');
-          cellMap[key] = value;
-          cellReMap[value] = key;
-        }
-      }
-    }
-
-    if (cell.data && +cell.data.rowspan > 1) {
-      const y = path[tableDepth];
-      
-      for (let j = i + 1; j < cells.length; j++) {
-        const _y = cells[j][1][tableDepth];
-        if (_y > y && _y < y + (+cell.data.rowspan)) {
-          const key = cells[j][1].join('');
-          cells[j][1][tableDepth + 1] += (+cell.data.colspan);
-          const value = cells[j][1].join('');
-          cellMap[key] = value;
-          cellReMap[value] = key;
-        }
-      }
-    }
-  };
+  const { cells, cellMap, cellReMap } = splitedTable(editor, table);
 
   let headPath = selection.anchor.path.slice(0, tableDepth + 2);
   let tailPath = selection.focus.path.slice(0, tableDepth + 2);
@@ -178,4 +136,68 @@ export function addSelectionStyle(editor) {
   });
 
   return coverCellsPath;
+}
+
+export const splitedTable = (editor, table) => {
+  const tableDepth = table[1].length;
+
+  let cells = [...Editor.nodes(editor, {
+    at: table[1],
+    match: n => n.type === defaultOptions.typeCell,
+  })];
+  
+  if (!cells || !cells.length) return {};
+
+  const cellMap = {};
+  const cellReMap = {};
+  let cellWidth = 0;
+
+  for (let i = 0; i < cells.length; i++) {
+    const [cell, path] = cells[i];
+
+    if (cell.data && +cell.data.colspan > 1) {
+      const y = path[tableDepth];
+      for (let j = i + 1; j < cells.length; j++) {
+        const [, _p] = cells[j];
+        if (_p[tableDepth] === y) {
+          const key = cells[j][1].join('');
+          cells[j][1][tableDepth + 1] += (+cell.data.colspan - 1);
+          const value = cells[j][1].join('');
+          cellMap[key] = value;
+          cellReMap[value] = key;
+        }
+      }
+    }
+
+    if (cell.data && +cell.data.rowspan > 1) {
+      const y = path[tableDepth];
+      
+      for (let j = i + 1; j < cells.length; j++) {
+        const _y = cells[j][1][tableDepth];
+        if (_y > y && _y < y + (+cell.data.rowspan)) {
+          const key = cells[j][1].join('');
+          cells[j][1][tableDepth + 1] += (+cell.data.colspan);
+          const value = cells[j][1].join('');
+          cellMap[key] = value;
+          cellReMap[value] = key;
+        }
+      }
+    }
+
+    cellWidth = Math.max(
+      cellWidth,
+      (path[tableDepth + 1] + 1)
+      + ((cell.data && cell.data.colspan) ? +cell.data.colspan : 0),
+    );
+  };
+
+  
+
+  return {
+    cellWidth,
+    tableDepth,
+    cells,
+    cellMap,
+    cellReMap,
+  }
 }

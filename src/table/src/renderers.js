@@ -349,7 +349,7 @@ export const TableElement = (props) => {
           data-key={element.key}
           style={defaultOptions.rowStyle}
           onDrag={e => e.preventDefault()}
-        // type={element.type}
+          // type={element.type}
         >
           {children}
         </tr>

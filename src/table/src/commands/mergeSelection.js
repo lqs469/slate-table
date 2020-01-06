@@ -1,6 +1,7 @@
 import { Editor, Transforms } from 'slate';
 import { createCell } from '../create-cell';
 import { defaultOptions } from '../option';
+import { splitedTable } from '../selection';
 
 // import { mergeCells } from './merge';
 // import { ComponentStore } from '../store';
@@ -9,9 +10,14 @@ export default function mergeSelection(editor) {
   const [table] = [...Editor.nodes(editor, {
     match: n => n.type === defaultOptions.typeTable,
   })];
-  if (!table) return;
 
+  if (!table) return;
   const tableDepth = table[1].length;
+
+  const { cells, cellMap, cellReMap, cellWidth } = splitedTable(editor, table);
+
+  console.log(cells, cellMap, cellReMap);
+
   let selectedCells = [...Editor.nodes(editor, {
     at: table[1],
     match: n => !!n.selectionColor,
@@ -19,18 +25,29 @@ export default function mergeSelection(editor) {
 
   if (!selectedCells || selectedCells.length < 2) return;
 
+  const head = Object.assign({}, selectedCells[0]);
   console.log(selectedCells);
 
-  const head = selectedCells[0];
-  // const tail = selectedCells[selectedCells.length - 1];
-
-  const tmpContent = [];
+  selectedCells.forEach(([, path], index) => {
+    if (cellMap[path.join('')]) {
+      selectedCells[index][1] = cellMap[path.join('')].split('').map(item => parseInt(item, 10));
+    }
+  });
+  
+  console.log('🔥', selectedCells);
 
   
 
+  const tmpContent = [];
+
   selectedCells.forEach(cell => {
+    let at = cell[1];
+    if (cellReMap[at.join('')]) {
+      at = cellReMap[at.join('')].split('').map(item => parseInt(item, 10));
+    }
+
     const [currContent] = [...Editor.nodes(editor, {
-      at: cell[1],
+      at,
       match: n => n.type === defaultOptions.typeContent,
     })];
     
@@ -43,11 +60,9 @@ export default function mergeSelection(editor) {
     }
   });
 
-  let rowCount = 0;
-  let colCount = 0;
   let widthCount = 0;
-  const baseRow = head[1].slice(tableDepth)[0];
-  const baseCol = head[1].slice(tableDepth)[1];
+  const baseRow = selectedCells[0][1].slice(tableDepth)[0];
+  const baseCol = selectedCells[0][1].slice(tableDepth)[1];
 
   const _table = [];
   selectedCells.forEach(([cell, path]) => {
@@ -55,43 +70,63 @@ export default function mergeSelection(editor) {
     y = y - baseRow;
     x = x - baseCol;
 
-    if (!_table[y]) {
-      _table[y] = [];
+    const h = cell.data && +cell.data.rowspan > 1 ? +cell.data.rowspan : 1;
+    const w = cell.data && +cell.data.colspan > 1 ? +cell.data.colspan : 1;
+
+    for (let i = y; i < y + h; i++) {
+      for (let j = x; j < x + w; j++) {
+        if (!_table[i]) {
+          _table[i] = [];
+        }
+
+        _table[i][j] = [cell, path];
+      }
     }
-    _table[y][x] = [cell, path];
   });
 
+  console.log('🎩', _table);
+  
   let shouldMerge = true;
-  _table.forEach(row => {
-    let currCol = 0;
-    let currRow = 0;
-
-    row.forEach(([col]) => {
-      currCol += (+col.data.colspan || 1);
-      currRow = Math.max(currRow, +col.data.rowspan || 1);
-      widthCount += +col.data.width;
-    });
-
-    if (colCount !== 0 && colCount !== currCol) {
+  let rowCount = _table.length;
+  let colCount = _table[0].length;
+  _table.forEach((row, index) => {
+    if (row.length !== colCount) {
       shouldMerge = false;
       return;
-    } else {
-      colCount = currCol;
     }
 
-    rowCount += currRow;
-  })
+    if (index !== 0 && row.length === cellWidth) {
+      rowCount--;
+    }
+  });
 
   if (!shouldMerge) {
     alert('无法合并');
     return;
   }
 
-  selectedCells.forEach(([cell]) => {
+  selectedCells.forEach(([cell, path]) => {
     Transforms.removeNodes(editor, {
       at: table[1],
       match: n => n.key === cell.key,
     });
+
+    let at = path;
+    if (cellReMap[at.join('')]) {
+      at = cellReMap[at.join('')].split('').map(item => parseInt(item, 10));
+    }
+    console.log(at);
+    const td = [...Editor.nodes(editor, {
+      at: at.slice(0, at.length - 1),
+      match: n => n.type === defaultOptions.typeCell,
+    })];
+
+    if (td.length === 0 && path[tableDepth] !== head[1][tableDepth]) {
+      Transforms.removeNodes(editor, {
+        at: path.slice(0, path.length - 1),
+        match: n => n.type === defaultOptions.typeRow,
+      });
+    }
   });
 
   const newCell = createCell(tmpContent, {
