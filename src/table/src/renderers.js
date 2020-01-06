@@ -96,14 +96,29 @@ const Table = forwardRef((props, tableRef) => {
     }
   }, [onClearSelection]);
 
+  // const [holding, setHolding] = useState(false);
+
   return (
     <table
       ref={ref}
       style={{ ...props.style, maxWidth }}
-      onDragStart={e => e.preventDefault()}
       slate-table-element="table"
-    // {...props.attributes}
-    // type={props.type}
+      // {...props.attributes}
+      // type={props.type}
+      onDragStart={e => e.preventDefault()}
+      // onMouseDown={e => {
+      //   setHolding(true);
+      //   console.log(e.target.closest('td'));
+      // }}
+      // onMouseMove={e => {
+      //   if (holding) {
+      //     console.log(e.target.closest('td'));
+      //   }
+      // }}
+      // onMouseUp={e => {
+      //   setHolding(false);
+      //   console.log(e.target.closest('td'));
+      // }}
     >
       {props.children}
     </table>

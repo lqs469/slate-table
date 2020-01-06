@@ -75,6 +75,7 @@ export function addSelectionStyle(editor) {
     }
   }
 
+
   const { selection } = editor;
   if (!selection) return;
 
@@ -83,6 +84,8 @@ export function addSelectionStyle(editor) {
   })];
   if (!table) return;
 
+  const tableDepth = table[1].length;
+
   let cells = [...Editor.nodes(editor, {
     at: table[1],
     match: n => n.type === defaultOptions.typeCell,
@@ -90,11 +93,58 @@ export function addSelectionStyle(editor) {
   
   if (!cells || !cells.length) return;
 
-  let headPath = [];
-  let tailPath = [];
-  selection.anchor.path.forEach((item, index) => {
-    headPath.push(Math.min(item, selection.focus.path[index]));
-    tailPath.push(Math.max(item, selection.focus.path[index]));
+  const cellMap = {};
+  const cellReMap = {};
+
+  for (let i = 0; i < cells.length; i++) {
+    const [cell, path] = cells[i];
+    
+    if (cell.data && +cell.data.colspan > 1) {
+      const y = path[tableDepth];
+      for (let j = i + 1; j < cells.length; j++) {
+        const [, _p] = cells[j];
+        if (_p[tableDepth] === y) {
+          const key = cells[j][1].join('');
+          cells[j][1][tableDepth + 1] += (+cell.data.colspan - 1);
+          const value = cells[j][1].join('');
+          cellMap[key] = value;
+          cellReMap[value] = key;
+        }
+      }
+    }
+
+    if (cell.data && +cell.data.rowspan > 1) {
+      const y = path[tableDepth];
+      
+      for (let j = i + 1; j < cells.length; j++) {
+        const _y = cells[j][1][tableDepth];
+        if (_y > y && _y < y + (+cell.data.rowspan)) {
+          const key = cells[j][1].join('');
+          cells[j][1][tableDepth + 1] += (+cell.data.colspan);
+          const value = cells[j][1].join('');
+          cellMap[key] = value;
+          cellReMap[value] = key;
+        }
+      }
+    }
+  };
+
+  let headPath = selection.anchor.path.slice(0, tableDepth + 2);
+  let tailPath = selection.focus.path.slice(0, tableDepth + 2);
+  
+  if (cellMap[headPath.join('')]) {
+    headPath = cellMap[headPath.join('')].split('')
+      .map(item => parseInt(item, 10));;
+  }
+  
+  if (cellMap[tailPath.join('')]) {
+    tailPath = cellMap[tailPath.join('')].split('')
+      .map(item => parseInt(item, 10));
+  }
+  
+  headPath.forEach((item, index) => {
+    headPath[index] = Math.min(item, tailPath[index]);
+    tailPath[index] = Math.max(item, tailPath[index]);
   });
 
   const coverCellsPath = [];
@@ -112,10 +162,17 @@ export function addSelectionStyle(editor) {
   })
 
   coverCellsPath.forEach(([, path]) => {
+    let at = path;
+
+    if (cellReMap[path.join('')]) {
+      at = cellReMap[path.join('')].split('')
+        .map(item => parseInt(item, 10));
+    }
+
     Transforms.setNodes(editor, {
       selectionColor: 'rgb(185, 211, 252)',
     }, {
-      at: path,
+      at,
       match: n => n.type === defaultOptions.typeCell,
     });
   });

@@ -61,17 +61,31 @@ export default function mergeSelection(editor) {
     _table[y][x] = [cell, path];
   });
 
+  let shouldMerge = true;
   _table.forEach(row => {
     let currCol = 0;
     let currRow = 0;
+
     row.forEach(([col]) => {
       currCol += (+col.data.colspan || 1);
       currRow = Math.max(currRow, +col.data.rowspan || 1);
       widthCount += +col.data.width;
     });
-    colCount = Math.max(colCount, currCol);
+
+    if (colCount !== 0 && colCount !== currCol) {
+      shouldMerge = false;
+      return;
+    } else {
+      colCount = currCol;
+    }
+
     rowCount += currRow;
   })
+
+  if (!shouldMerge) {
+    alert('无法合并');
+    return;
+  }
 
   selectedCells.forEach(([cell]) => {
     Transforms.removeNodes(editor, {

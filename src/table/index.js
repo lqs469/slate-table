@@ -27,7 +27,7 @@ export default function Table() {
     [],
   );
 
-  console.log(value);
+  console.log(value[1]);
   return (
     <div style={{ width: '700px', margin: '20px auto' }}>
       <Slate
