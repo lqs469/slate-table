@@ -76,9 +76,10 @@ const Table = forwardRef((props, tableRef) => {
   // }));
 
   const [allowSelection, setAllowSelection] = useState(false);
+  const [holding, setHolding] = useState(false);
 
   useEffect(() => {
-    if (allowSelection) {
+    if (allowSelection, holding) {
       const cells = addSelectionStyle(editor);
       // setSelection(cells);
     }
@@ -96,7 +97,7 @@ const Table = forwardRef((props, tableRef) => {
     }
   }, [onClearSelection]);
 
-  // const [holding, setHolding] = useState(false);
+  
 
   return (
     <table
@@ -106,19 +107,17 @@ const Table = forwardRef((props, tableRef) => {
       // {...props.attributes}
       // type={props.type}
       onDragStart={e => e.preventDefault()}
-      // onMouseDown={e => {
-      //   setHolding(true);
-      //   console.log(e.target.closest('td'));
-      // }}
-      // onMouseMove={e => {
-      //   if (holding) {
-      //     console.log(e.target.closest('td'));
-      //   }
-      // }}
-      // onMouseUp={e => {
-      //   setHolding(false);
-      //   console.log(e.target.closest('td'));
-      // }}
+      onMouseDown={e => {
+        setHolding(true);
+      }}
+      onMouseMove={e => {
+        // if (holding) {
+        //   console.log(e.target.closest('td'));
+        // }
+      }}
+      onMouseUp={e => {
+        setHolding(false);
+      }}
     >
       {props.children}
     </table>
@@ -158,10 +157,7 @@ const Cell = props => {
   // }, [onMouseUp, onWindowClick]);
 
   const tdStyles = {
-    ...props.opts.cellStyle,
-    minWidth: `${props.opts.minimumCellWidth}px`,
     width: `${props.node.data.width}px` || 'auto',
-    verticalAlign: 'baseline',
     ...(props.node.data.style || {}),
   };
 
@@ -171,74 +167,74 @@ const Cell = props => {
 
   return (
     <td
-      data-key={props['data-key']}
+      // onMouseDown={e => {
+      //   if (!(e.target instanceof HTMLElement)) return;
+      //   props.store.setAnchorCellBlock(null);
+      //   props.store.setFocusCellBlock(null);
+      //   removeSelection(props.editor);
+      //   props.store.setCellSelecting(props.editor);
+      //   const anchorCellBlock = table.findCellBlockByElement(props.editor, e.target, props.opts);
+      //   props.store.setAnchorCellBlock(anchorCellBlock);
+      //   window.addEventListener('mouseup', onMouseUp);
+      //   window.addEventListener('click', onWindowClick);
+      // }}
+      // onMouseOver={e => {
+      //   e.stopPropagation();
+      //   const anchorCellBlock = props.store.getAnchorCellBlock();
+      //   if (anchorCellBlock === null) return;
+      //   if (!(e.target instanceof HTMLElement)) return;
+      //   if (!props.store.getCellSelecting()) return;
+      //   const focusCellBlock = table.findCellBlockByElement(props.editor, e.target, props.opts);
+      //   if (!focusCellBlock) return;
+      //   const prevFocusBlock = props.store.getFocusCellBlock();
+
+      //   if (focusCellBlock === prevFocusBlock) return;
+      //   if (focusCellBlock.key === (prevFocusBlock && prevFocusBlock.key)) return;
+
+
+      //   const t = table.TableLayout.create(props.editor, props.opts);
+      //   if (!t) {
+      //     removeSelection(props.editor);
+      //     props.store.setAnchorCellBlock(null);
+      //     props.store.setFocusCellBlock(null);
+      //     return;
+      //   }
+      //   props.store.setFocusCellBlock(focusCellBlock);
+      //   // HACK: Add ::selection style when greater than 1 cells selected.
+      //   addSelectionStyle(props.editor);
+
+      //   const blocks = table.createSelectedBlockMap(props.editor, anchorCellBlock.key, focusCellBlock.key, props.opts);
+
+      //   HistoryEditor.withoutSaving(editor, () => {
+      //     t.table.forEach(row => {
+      //       row.forEach(cell => {
+      //         if (blocks[cell.key]) {
+      //           props.editor.setNodeByKey(cell.key, {
+      //             type: cell.block.type,
+      //             data: {
+      //               ...cell.block.data.toObject(),
+      //               selectionColor: props.opts.selectionColor,
+      //             },
+      //           });
+      //         } else {
+      //           props.editor.setNodeByKey(cell.key, {
+      //             type: cell.block.type,
+      //             data: {
+      //               ...cell.block.data.toObject(),
+      //               selectionColor: null,
+      //             },
+      //           });
+      //         }
+      //       });
+      //     });
+      //   });
+      // }}
+
       // type={props.type}
       {...props.attributes}
-      onMouseDown={e => {
-        // if (!(e.target instanceof HTMLElement)) return;
-        // props.store.setAnchorCellBlock(null);
-        // props.store.setFocusCellBlock(null);
-        // removeSelection(props.editor);
-        // props.store.setCellSelecting(props.editor);
-        // const anchorCellBlock = table.findCellBlockByElement(props.editor, e.target, props.opts);
-        // props.store.setAnchorCellBlock(anchorCellBlock);
-        // window.addEventListener('mouseup', onMouseUp);
-        // window.addEventListener('click', onWindowClick);
-      }}
-      onMouseOver={e => {
-        // e.stopPropagation();
-        // const anchorCellBlock = props.store.getAnchorCellBlock();
-        // if (anchorCellBlock === null) return;
-        // if (!(e.target instanceof HTMLElement)) return;
-        // if (!props.store.getCellSelecting()) return;
-        // const focusCellBlock = table.findCellBlockByElement(props.editor, e.target, props.opts);
-        // if (!focusCellBlock) return;
-        // const prevFocusBlock = props.store.getFocusCellBlock();
-
-        // if (focusCellBlock === prevFocusBlock) return;
-        // if (focusCellBlock.key === (prevFocusBlock && prevFocusBlock.key)) return;
-
-
-        // const t = table.TableLayout.create(props.editor, props.opts);
-        // if (!t) {
-        //   removeSelection(props.editor);
-        //   props.store.setAnchorCellBlock(null);
-        //   props.store.setFocusCellBlock(null);
-        //   return;
-        // }
-        // props.store.setFocusCellBlock(focusCellBlock);
-        // // HACK: Add ::selection style when greater than 1 cells selected.
-        // addSelectionStyle(props.editor);
-
-        // const blocks = table.createSelectedBlockMap(props.editor, anchorCellBlock.key, focusCellBlock.key, props.opts);
-
-        // HistoryEditor.withoutSaving(editor, () => {
-        //   t.table.forEach(row => {
-        //     row.forEach(cell => {
-        //       if (blocks[cell.key]) {
-        //         props.editor.setNodeByKey(cell.key, {
-        //           type: cell.block.type,
-        //           data: {
-        //             ...cell.block.data.toObject(),
-        //             selectionColor: props.opts.selectionColor,
-        //           },
-        //         });
-        //       } else {
-        //         props.editor.setNodeByKey(cell.key, {
-        //           type: cell.block.type,
-        //           data: {
-        //             ...cell.block.data.toObject(),
-        //             selectionColor: null,
-        //           },
-        //         });
-        //       }
-        //     });
-        //   });
-        // });
-      }}
-
-      colSpan={props.node.data.colspan}
-      rowSpan={props.node.data.rowspan}
+      data-key={props['data-key']}
+      colSpan={props.node.colspan}
+      rowSpan={props.node.rowspan}
       style={tdStyles}
       slate-table-element="td"
     >
@@ -253,12 +249,12 @@ const Cell = props => {
 // 表格文本内容
 const Content = memo(({ attributes, children, type }) => {
   return (
-    <div
+    <span
       style={{ margin: 0 }}
       {...attributes}
       type={type}
-      slate-table-element="div"
-    >{children}</div>
+      slate-table-element="span"
+    >{children}</span>
   );
 });
 
@@ -365,7 +361,6 @@ export const TableElement = (props) => {
           store={store}
           node={children.props.node}
           attributes={attributes}
-          opts={defaultOptions}
         >
           {children}
         </Cell>

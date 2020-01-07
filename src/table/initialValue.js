@@ -19,43 +19,33 @@ export default [
             key: 'cell_0',
             data: {
               "width": 200,
-              rowspan: '2',
-              colspan: '2',
             },
+            // rowspan: 2,
+            // colspan: 2,
             children: [
               {
                 type: "editable_table_content",
                 children: [
-                  {
-                    type: 'paragraph',
-                    children: [
-                      { text: 'Lorem ipsum...' },
-                    ],
-                  },
+                  { text: 'Lorem ipsum...' },
                 ]
               },
             ],
           },
-          // {
-          //   "type": "editable_table_cell",
-          //   key: 'cell_1',
-          //   "children": [
-          //     {
-          //       "type": "editable_table_content",
-          //       "children": [
-          //         {
-          //           type: 'paragraph',
-          //           children: [
-          //             { text: 'a1' },
-          //           ],
-          //         },
-          //       ]
-          //     }
-          //   ],
-          //   "data": {
-          //     "width": 15
-          //   }
-          // },
+          {
+            "type": "editable_table_cell",
+            key: 'cell_1',
+            "children": [
+              {
+                "type": "editable_table_content",
+                "children": [
+                  { text: 'a1' },
+                ]
+              }
+            ],
+            "data": {
+              "width": 15
+            }
+          },
           {
             "type": "editable_table_cell",
             key: 'cell_2',
@@ -63,12 +53,7 @@ export default [
               {
                 "type": "editable_table_content",
                 "children": [
-                  {
-                    type: 'paragraph',
-                    children: [
-                      { text: 'a2' },
-                    ],
-                  },
+                  { text: 'a2' },
                 ]
               }
             ],
@@ -83,46 +68,46 @@ export default [
         "type": "editable_table_row",
         key: 'row_1',
         "children": [
-          // {
-          //   "type": "editable_table_cell",
-          //   key: 'cell_3',
-          //   "children": [
-          //     {
-          //       "type": "editable_table_content",
-          //       "children": [
-          //         {
-          //           type: 'paragraph',
-          //           children: [
-          //             { text: 'a3' },
-          //           ],
-          //         },
-          //       ]
-          //     }
-          //   ],
-          //   "data": {
-          //     "width": 15
-          //   }
-          // },
-          // {
-          //   "type": "editable_table_cell",
-          //   key: 'cell_4',
-          //   "children": [
-          //     {
-          //       "type": "editable_table_content",
-          //       "children": [
-          //         {
-          //           type: 'paragraph',
-          //           children: [
-          //             { text: 'a4' },
-          //           ],
-          //         },
-          //       ]
-          //     }
-          //   ],
-          //   "data": {
-          //     "width": 200
-          //   }
-          // },
+          {
+            "type": "editable_table_cell",
+            key: 'cell_3',
+            "children": [
+              {
+                "type": "editable_table_content",
+                "children": [
+                  {
+                    type: 'paragraph',
+                    children: [
+                      { text: 'a3' },
+                    ],
+                  },
+                ]
+              }
+            ],
+            "data": {
+              "width": 15
+            }
+          },
+          {
+            "type": "editable_table_cell",
+            key: 'cell_4',
+            "children": [
+              {
+                "type": "editable_table_content",
+                "children": [
+                  {
+                    type: 'paragraph',
+                    children: [
+                      { text: 'a4' },
+                    ],
+                  },
+                ]
+              }
+            ],
+            "data": {
+              "width": 200
+            }
+          },
           {
             "type": "editable_table_cell",
             key: 'cell_5',

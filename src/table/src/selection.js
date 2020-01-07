@@ -141,12 +141,14 @@ export function addSelectionStyle(editor) {
 export const splitedTable = (editor, table) => {
   const tableDepth = table[1].length;
 
-  let cells = [...Editor.nodes(editor, {
+  const cells = [...Editor.nodes(editor, {
     at: table[1],
     match: n => n.type === defaultOptions.typeCell,
   })];
   
   if (!cells || !cells.length) return {};
+
+  console.log('✔️', cells);
 
   const cellMap = {};
   const cellReMap = {};
@@ -154,32 +156,46 @@ export const splitedTable = (editor, table) => {
 
   for (let i = 0; i < cells.length; i++) {
     const [cell, path] = cells[i];
+    const { rowspan = 0, colspan = 0 } = cell;
 
-    if (cell.data && +cell.data.colspan > 1) {
+    if (colspan > 1) {
       const y = path[tableDepth];
       for (let j = i + 1; j < cells.length; j++) {
         const [, _p] = cells[j];
         if (_p[tableDepth] === y) {
-          const key = cells[j][1].join('');
-          cells[j][1][tableDepth + 1] += (+cell.data.colspan - 1);
+          const key = _p.join('');
+          cells[j][1][tableDepth + 1] += (colspan - 1);
           const value = cells[j][1].join('');
           cellMap[key] = value;
           cellReMap[value] = key;
         }
+
+        if (_p[tableDepth] > y) {
+          break;
+        }
       }
     }
 
-    if (cell.data && +cell.data.rowspan > 1) {
+    if (rowspan > 1) {
       const y = path[tableDepth];
-      
+      const x = path[tableDepth + 1];
       for (let j = i + 1; j < cells.length; j++) {
         const _y = cells[j][1][tableDepth];
-        if (_y > y && _y < y + (+cell.data.rowspan)) {
+        const _x = cells[j][1][tableDepth + 1];
+        if (
+          _y > y
+          && _y < y + rowspan
+          && _x >= x
+        ) {
           const key = cells[j][1].join('');
-          cells[j][1][tableDepth + 1] += (+cell.data.colspan);
+          cells[j][1][tableDepth + 1] += colspan;
           const value = cells[j][1].join('');
           cellMap[key] = value;
           cellReMap[value] = key;
+        }
+
+        if (_y >= y + rowspan) {
+          break;
         }
       }
     }
@@ -187,11 +203,9 @@ export const splitedTable = (editor, table) => {
     cellWidth = Math.max(
       cellWidth,
       (path[tableDepth + 1] + 1)
-      + ((cell.data && cell.data.colspan) ? +cell.data.colspan : 0),
+      + ((cell.data && cell.data.colspan) ? cell.data.colspan : 0),
     );
   };
-
-  
 
   return {
     cellWidth,

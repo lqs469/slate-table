@@ -1,4 +1,4 @@
-import { Editor, Transforms } from 'slate';
+import { Editor, Transforms, Path } from 'slate';
 import { createCell } from '../create-cell';
 import { defaultOptions } from '../option';
 import { splitedTable } from '../selection';
@@ -6,7 +6,42 @@ import { splitedTable } from '../selection';
 // import { mergeCells } from './merge';
 // import { ComponentStore } from '../store';
 
+function checkMerge(table) {
+  let selectedCount = 0;
+  const selectedTable = table.reduce((t, row) => {
+    const currRow = row.filter(cell => cell.isSelected);
+    if (currRow.length) {
+      t.push(currRow);
+      selectedCount += currRow.length;
+    }
+    return t;
+  }, []);
+
+  console.log('🔥', selectedTable);
+  if (selectedCount < 2) {
+    return false;
+  }
+  
+  const selectedWidth = selectedTable[0].length;
+  let couldMerge = true;
+  selectedTable.forEach(row => {
+    if (row.length !== selectedWidth) {
+      alert('无法合并');
+      couldMerge = false;
+    }
+  });
+
+  if (!couldMerge) {
+    return false;
+  }
+
+  return selectedTable;
+}
+
+
 export default function mergeSelection(editor) {
+  console.log('start', editor);
+  let insertPosition = null;
   const [table] = [...Editor.nodes(editor, {
     match: n => n.type === defaultOptions.typeTable,
   })];
@@ -14,64 +49,16 @@ export default function mergeSelection(editor) {
   if (!table) return;
   const tableDepth = table[1].length;
 
-  const { cells, cellMap, cellReMap, cellWidth } = splitedTable(editor, table);
-
+  let { cells, cellMap, cellReMap, cellWidth } = splitedTable(editor, table);
   console.log(cells, cellMap, cellReMap);
 
-  let selectedCells = [...Editor.nodes(editor, {
-    at: table[1],
-    match: n => !!n.selectionColor,
-  })];
-
-  if (!selectedCells || selectedCells.length < 2) return;
-
-  const head = Object.assign({}, selectedCells[0]);
-  console.log(selectedCells);
-
-  selectedCells.forEach(([, path], index) => {
-    if (cellMap[path.join('')]) {
-      selectedCells[index][1] = cellMap[path.join('')].split('').map(item => parseInt(item, 10));
-    }
-  });
-  
-  console.log('🔥', selectedCells);
-
-  
-
-  const tmpContent = [];
-
-  selectedCells.forEach(cell => {
-    let at = cell[1];
-    if (cellReMap[at.join('')]) {
-      at = cellReMap[at.join('')].split('').map(item => parseInt(item, 10));
-    }
-
-    const [currContent] = [...Editor.nodes(editor, {
-      at,
-      match: n => n.type === defaultOptions.typeContent,
-    })];
-    
-    if (
-      currContent
-      && currContent[0].children
-      && currContent[0].children.length
-    ) {
-      tmpContent.push(...currContent[0].children);
-    }
-  });
-
-  let widthCount = 0;
-  const baseRow = selectedCells[0][1].slice(tableDepth)[0];
-  const baseCol = selectedCells[0][1].slice(tableDepth)[1];
-
   const _table = [];
-  selectedCells.forEach(([cell, path]) => {
+  cells.forEach(([cell, path]) => {
     let [y, x] = path.slice(tableDepth);
-    y = y - baseRow;
-    x = x - baseCol;
+    const { rowspan = 0, colspan = 0 } = cell;
 
-    const h = cell.data && +cell.data.rowspan > 1 ? +cell.data.rowspan : 1;
-    const w = cell.data && +cell.data.colspan > 1 ? +cell.data.colspan : 1;
+    const h = rowspan || 1;
+    const w = colspan || 1;
 
     for (let i = y; i < y + h; i++) {
       for (let j = x; j < x + w; j++) {
@@ -79,64 +66,141 @@ export default function mergeSelection(editor) {
           _table[i] = [];
         }
 
-        _table[i][j] = [cell, path];
+        _table[i][j] = {
+          cell,
+          path,
+          isReal: (h === 1 && w === 1) || (i === y && j === x),
+          isSelected: !!cell.selectionColor,
+        };
+
+        if (!insertPosition && cell.selectionColor) {
+          insertPosition = _table[i][j];
+          _table[i][j].isInsertPosition = true;
+        }
       }
     }
   });
 
-  console.log('🎩', _table);
+  const selectedTable = checkMerge(_table);
   
-  let shouldMerge = true;
-  let rowCount = _table.length;
-  let colCount = _table[0].length;
-  _table.forEach((row, index) => {
-    if (row.length !== colCount) {
-      shouldMerge = false;
-      return;
-    }
-
-    if (index !== 0 && row.length === cellWidth) {
-      rowCount--;
-    }
-  });
-
-  if (!shouldMerge) {
-    alert('无法合并');
+  console.log('🎅', _table, insertPosition, selectedTable);
+  if (!selectedTable || !insertPosition) {
     return;
   }
 
-  selectedCells.forEach(([cell, path]) => {
-    Transforms.removeNodes(editor, {
-      at: table[1],
-      match: n => n.key === cell.key,
+  const tmpContent = [];
+
+  _table.forEach(row => {
+    row.forEach(col => {
+      if (col.isSelected && !col.isInsertPosition) {
+        col.isReal = false;
+        col.targetCell = insertPosition.cell;
+      }
     });
+  });
 
-    let at = path;
-    if (cellReMap[at.join('')]) {
-      at = cellReMap[at.join('')].split('').map(item => parseInt(item, 10));
+  console.log('😎', _table);
+  _table.forEach(row => {
+    row.forEach(col => {
+      if (col.targetCell && col.cell.key !== col.targetCell.key) {
+        console.log('❌', col)
+        const currContent = col.cell.children[0];
+
+        if (
+          currContent
+          && currContent.children
+          && currContent.children.length
+        ) {
+          tmpContent.push(...currContent.children);
+        }
+
+        Transforms.removeNodes(editor, {
+          at: table[1],
+          match: n => n.key === col.cell.key,
+        });
+      }
+    });
+  });
+
+  console.log('tmpContent', tmpContent);
+  Transforms.setNodes(editor, {
+    colspan: selectedTable[0].length,
+    rowspan: selectedTable.length,
+  }, {
+    at: table[1],
+    match: n => n.key === insertPosition.cell.key,
+  });
+
+  Transforms.removeNodes(editor, {
+    at: table[1],
+    match: n => {
+      if (n.type !== defaultOptions.typeRow) {
+        return false;
+      }
+      
+      if (!n.children) {
+        return true;
+      }
+
+      const found = n.children.findIndex(col => col.type === defaultOptions.typeCell);
+      if (found === -1) {
+        console.log('❌空tr，整行删除', n);
+        checkSpan();
+        return true;
+      }
     }
-    console.log(at);
-    const td = [...Editor.nodes(editor, {
-      at: at.slice(0, at.length - 1),
-      match: n => n.type === defaultOptions.typeCell,
+  });
+
+  function checkSpan() {
+    _table.forEach(row => {
+      const isFakeRow = row.reduce((p, c) => p && !c.isReal, true);
+  
+      if (isFakeRow) {
+        const originCol = new Map();
+        row.forEach(col => {
+          const cell = col.targetCell || col.cell;
+          originCol.set(cell.key, cell);
+        });
+        
+        originCol.forEach(col => {
+          const [node] = [...Editor.nodes(editor, {
+            at: table[1],
+            match: n => n.key === col.key,
+          })];
+          if (node && node[0]) {
+            Transforms.setNodes(editor, {
+              rowspan: node[0].rowspan
+                ? Math.max(node[0].rowspan - 1, 1)
+                : 1,
+            }, {
+              at: table[1],
+              match: n => n.key === col.key,
+            });
+          }
+        });
+      }
+    });
+  }
+
+  
+
+  
+  tmpContent.forEach((content, index) => {
+    const nodes = [...Editor.nodes(editor, {
+      at: insertPosition.path,
+      match: n => n.type === defaultOptions.typeContent,
     })];
+    const [, targetPath] = nodes[nodes.length - 1];
 
-    if (td.length === 0 && path[tableDepth] !== head[1][tableDepth]) {
-      Transforms.removeNodes(editor, {
-        at: path.slice(0, path.length - 1),
-        match: n => n.type === defaultOptions.typeRow,
-      });
-    }
-  });
-
-  const newCell = createCell(tmpContent, {
-    colspan: colCount,
-    rowspan: rowCount,
-    width: widthCount,
-  });
-
-  Transforms.insertNodes(editor, newCell, {
-    at: head[1],
-    match: n => n.key === head[0].key,
+    Transforms.insertNodes(
+      editor,
+      {
+        type: defaultOptions.typeContent,
+        children: [content],
+      },
+      {
+        at: Path.next(targetPath),
+      },
+    );
   });
 }
