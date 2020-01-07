@@ -17,7 +17,6 @@ function checkMerge(table) {
     return t;
   }, []);
 
-  console.log('🔥', selectedTable);
   if (selectedCount < 2) {
     return false;
   }
@@ -40,7 +39,6 @@ function checkMerge(table) {
 
 
 export default function mergeSelection(editor) {
-  console.log('start', editor);
   let insertPosition = null;
   const [table] = [...Editor.nodes(editor, {
     match: n => n.type === defaultOptions.typeTable,
@@ -50,7 +48,6 @@ export default function mergeSelection(editor) {
   const tableDepth = table[1].length;
 
   let { cells, cellMap, cellReMap, cellWidth } = splitedTable(editor, table);
-  console.log(cells, cellMap, cellReMap);
 
   const _table = [];
   cells.forEach(([cell, path]) => {
@@ -83,7 +80,6 @@ export default function mergeSelection(editor) {
 
   const selectedTable = checkMerge(_table);
   
-  console.log('🎅', _table, insertPosition, selectedTable);
   if (!selectedTable || !insertPosition) {
     return;
   }
@@ -99,11 +95,9 @@ export default function mergeSelection(editor) {
     });
   });
 
-  console.log('😎', _table);
   _table.forEach(row => {
     row.forEach(col => {
       if (col.targetCell && col.cell.key !== col.targetCell.key) {
-        console.log('❌', col)
         const currContent = col.cell.children[0];
 
         if (
@@ -122,7 +116,6 @@ export default function mergeSelection(editor) {
     });
   });
 
-  console.log('tmpContent', tmpContent);
   Transforms.setNodes(editor, {
     colspan: selectedTable[0].length,
     rowspan: selectedTable.length,
@@ -144,7 +137,6 @@ export default function mergeSelection(editor) {
 
       const found = n.children.findIndex(col => col.type === defaultOptions.typeCell);
       if (found === -1) {
-        console.log('❌空tr，整行删除', n);
         checkSpan();
         return true;
       }
@@ -184,23 +176,25 @@ export default function mergeSelection(editor) {
 
   
 
+  const [cell] = [...Editor.nodes(editor, {
+    at: editor.selection.anchor.path,
+    match: n => n.type === defaultOptions.typeCell,
+  })];
   
-  tmpContent.forEach((content, index) => {
+  tmpContent.forEach(content => {
     const nodes = [...Editor.nodes(editor, {
-      at: insertPosition.path,
+      at: cell[1],
       match: n => n.type === defaultOptions.typeContent,
     })];
     const [, targetPath] = nodes[nodes.length - 1];
 
-    Transforms.insertNodes(
-      editor,
-      {
-        type: defaultOptions.typeContent,
-        children: [content],
-      },
-      {
-        at: Path.next(targetPath),
-      },
-    );
+    const tableContent = {
+      type: defaultOptions.typeContent,
+      children: [content],
+    };
+
+    Transforms.insertNodes(editor, tableContent, {
+      at: Path.next(targetPath),
+    });
   });
 }
