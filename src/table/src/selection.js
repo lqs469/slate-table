@@ -11,38 +11,11 @@ const insertStyleId = '__slate__table__id';
 
 export function removeSelection(editor) {
   Transforms.unsetNodes(editor, 'selectionColor', {
-    at: {},
+    at: [],
     match: n => !!n.selectionColor,
   });
 
-  // removeSelectionStyle();
-  // HistoryEditor.withoutSaving(editor, () => {
-  //   const editors = document.querySelectorAll('[data-slate-editor]');
-  //   Array.from(editors).forEach(e => {
-  //     const tables = e.querySelectorAll('table');
-  //     tables.forEach(table => {
-  //       const { key } = table.dataset;
-  //       if (!key) return;
-  //       const tableBlock = editor.value.document.getNode(key);
-
-  //       if (!isBlock(tableBlock)) return;
-
-  //       tableBlock.nodes.forEach(row => {
-  //         if (!isBlock(row)) return;
-
-  //         row.nodes.forEach(cell => {
-  //           if (!isBlock(cell)) return;
-
-  //           editor.setNodeByKey(cell.key, {
-  //             type: cell.type,
-  //             data: { ...cell.data.toObject(), selectionColor: null },
-  //           });
-  //         });
-  //       });
-  //     });
-  //   });
-  //   removeSelectionStyle();
-  // });
+  removeSelectionStyle();
 }
 
 export function removeSelectionStyle() {
@@ -54,9 +27,7 @@ export function removeSelectionStyle() {
   }
 }
 
-export function addSelectionStyle(editor) {
-  removeSelection(editor);
-
+export function addSelectionStyle() {
   // HACK: Add ::selection style when greater than 1 cells selected.
   if (!document.querySelector(`style#${insertStyleId}`)) {
     const style = document.createElement('style');
@@ -74,7 +45,12 @@ export function addSelectionStyle(editor) {
       }
     }
   }
+}
 
+export function addSelection(editor) {
+  removeSelection(editor);
+  addSelectionStyle();
+  
   const { selection } = editor;
   if (!selection) return;
 
@@ -147,8 +123,6 @@ export const splitedTable = (editor, table) => {
   })];
   
   if (!cells || !cells.length) return {};
-
-  console.log('✔️', cells);
 
   const cellMap = {};
   const cellReMap = {};

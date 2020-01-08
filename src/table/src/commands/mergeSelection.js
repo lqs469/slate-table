@@ -1,41 +1,6 @@
 import { Editor, Transforms, Path } from 'slate';
-import { createCell } from '../create-cell';
 import { defaultOptions } from '../option';
 import { splitedTable } from '../selection';
-
-// import { mergeCells } from './merge';
-// import { ComponentStore } from '../store';
-
-function checkMerge(table) {
-  let selectedCount = 0;
-  const selectedTable = table.reduce((t, row) => {
-    const currRow = row.filter(cell => cell.isSelected);
-    if (currRow.length) {
-      t.push(currRow);
-      selectedCount += currRow.length;
-    }
-    return t;
-  }, []);
-
-  if (selectedCount < 2) {
-    return false;
-  }
-  
-  const selectedWidth = selectedTable[0].length;
-  let couldMerge = true;
-  selectedTable.forEach(row => {
-    if (row.length !== selectedWidth) {
-      alert('无法合并');
-      couldMerge = false;
-    }
-  });
-
-  if (!couldMerge) {
-    return false;
-  }
-
-  return selectedTable;
-}
 
 
 export default function mergeSelection(editor) {
@@ -47,7 +12,7 @@ export default function mergeSelection(editor) {
   if (!table) return;
   const tableDepth = table[1].length;
 
-  let { cells, cellMap, cellReMap, cellWidth } = splitedTable(editor, table);
+  let { cells } = splitedTable(editor, table);
 
   const _table = [];
   cells.forEach(([cell, path]) => {
@@ -174,8 +139,6 @@ export default function mergeSelection(editor) {
     });
   }
 
-  
-
   const [cell] = [...Editor.nodes(editor, {
     at: editor.selection.anchor.path,
     match: n => n.type === defaultOptions.typeCell,
@@ -197,4 +160,35 @@ export default function mergeSelection(editor) {
       at: Path.next(targetPath),
     });
   });
+}
+
+function checkMerge(table) {
+  let selectedCount = 0;
+  const selectedTable = table.reduce((t, row) => {
+    const currRow = row.filter(cell => cell.isSelected);
+    if (currRow.length) {
+      t.push(currRow);
+      selectedCount += currRow.length;
+    }
+    return t;
+  }, []);
+
+  if (selectedCount < 2) {
+    return false;
+  }
+  
+  const selectedWidth = selectedTable[0].length;
+  let couldMerge = true;
+  selectedTable.forEach(row => {
+    if (row.length !== selectedWidth) {
+      alert('无法合并');
+      couldMerge = false;
+    }
+  });
+
+  if (!couldMerge) {
+    return false;
+  }
+
+  return selectedTable;
 }

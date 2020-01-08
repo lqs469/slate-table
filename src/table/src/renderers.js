@@ -4,25 +4,25 @@ import {
   useEditor,
 } from "slate-react";
 import { ComponentStore } from './store';
-import { removeSelection, addSelectionStyle } from './selection';
+import { removeSelection, addSelection } from './selection';
 import { useResizableTable } from './use-resizable';
 import { defaultOptions } from './option';
-import { HistoryEditor } from 'slate-history';
-import * as table from './layout';
+// import { HistoryEditor } from 'slate-history';
+// import * as table from './layout';
 
+const store = new ComponentStore();
 
 
 // 表格组件
-const Table = forwardRef((props, tableRef) => {
+const Table = forwardRef((props) => {
   const [disableResizing, forceUpdate] = useState(false);
   const maxWidth = typeof props.maxWidth === 'undefined' ? 'auto' : props.maxWidth + 'px';
   const editor = useEditor();
-  // const [selection, setSelection] = useState([]);
 
-  // const onInit = useCallback((values) => {
-  //   console.log('onInit')
-  //   props.onUpdate(editor, values);
-  // }, []);
+  const onInit = useCallback((values) => {
+    console.log('onInit')
+    props.onUpdate(editor, values);
+  }, [editor, props]);
 
   const onUpdate = useCallback((values) => {
     console.log('onUpdate')
@@ -44,14 +44,17 @@ const Table = forwardRef((props, tableRef) => {
     // props.store.setFocusCellBlock(null);
   }, [editor]);
 
-  const { ref, update } = useResizableTable({
+  const {
+    ref,
+    // update,
+  } = useResizableTable({
     disableResizing,
     maxWidth: props.maxWidth,
     minimumCellWidth: props.minimumCellWidth,
     onResizeStart,
     onResizeStop,
     // onResize,
-    // onInit,
+    onInit,
     onUpdate,
     onHandleHover: props.onHandleMouseOver,
   });
@@ -63,11 +66,11 @@ const Table = forwardRef((props, tableRef) => {
   //   update();
   // }, [props.attributes, ref, update]);
 
-  // useEffect(() => {
-  //   props.store.subscribeDisableResizing(editor, v => {
-  //     forceUpdate(v);
-  //   });
-  // }, []);
+  useEffect(() => {
+    props.store.subscribeDisableResizing(editor, v => {
+      forceUpdate(v);
+    });
+  }, [editor, props.store]);
 
   // React.useImperativeHandle(tableRef, () => ({
   //   update: () => {
@@ -75,20 +78,13 @@ const Table = forwardRef((props, tableRef) => {
   //   },
   // }));
 
-  const [allowSelection, setAllowSelection] = useState(false);
-  const [holding, setHolding] = useState(false);
-
-  useEffect(() => {
-    if (allowSelection, holding) {
-      const cells = addSelectionStyle(editor);
-      // setSelection(cells);
-    }
-  }, [allowSelection, editor, editor.selection]);
-
   const onClearSelection = useCallback(e => {
     removeSelection(editor);
-    setAllowSelection(!!e.target.closest('*[slate-table-element]'));
-  }, []);
+  }, [editor]);
+
+  useEffect(() => {
+    addSelection(editor);
+  }, [editor, editor.selection]);
 
   useEffect(() => {
     window.addEventListener('mousedown', onClearSelection);
@@ -97,8 +93,6 @@ const Table = forwardRef((props, tableRef) => {
     }
   }, [onClearSelection]);
 
-  
-
   return (
     <table
       ref={ref}
@@ -106,17 +100,8 @@ const Table = forwardRef((props, tableRef) => {
       slate-table-element="table"
       // {...props.attributes}
       // type={props.type}
-      onDragStart={e => e.preventDefault()}
-      onMouseDown={e => {
-        setHolding(true);
-      }}
-      onMouseMove={e => {
-        // if (holding) {
-        //   console.log(e.target.closest('td'));
-        // }
-      }}
-      onMouseUp={e => {
-        setHolding(false);
+      onDragStart={e => {
+        e.preventDefault();
       }}
     >
       {props.children}
@@ -272,7 +257,8 @@ const updateWidth = (editor, value) => {
     if (!block || !block[0]) return;
 
     const selectedType = block[0].type;
-    const selectedData = block[0].data
+    const selectedData = block[0].data;
+
     Transforms.setNodes(editor, {
       type: selectedType,
       data: { ...selectedData, width: value[k] },
@@ -281,32 +267,6 @@ const updateWidth = (editor, value) => {
       match: n => n.key === k,
     });
   });
-
-  // function fn(node, handler) {
-  //   if (node.type === defaultOptions.typeCell) {
-  //     handler(node);
-  //     return [node];
-  //   }
-
-  //   const nodes = node.children.reduce((p, c) => {
-  //     const validNodes = fn(c, handler);
-  //     return [...p, ...validNodes];
-  //   }, []);
-
-  //   return nodes;
-  // }
-
-  // editor.children.forEach(node => {
-  //   if (node.type === defaultOptions.typeTable) {
-  //     fn(
-  //       node,
-  //       (node) => {
-  //         node.data = { ...node.data, width: value[node.key] };
-  //       }
-  //     );
-  //   }
-  //   return node;
-  // });
 }
 
 
@@ -315,7 +275,6 @@ const updateWidth = (editor, value) => {
 export const TableElement = (props) => {
   const { attributes, children, element } = props;
   const editor = useEditor();
-  const store = new ComponentStore();
 
   switch (element.type) {
     case defaultOptions.typeTable: {

@@ -18,6 +18,7 @@ export class ComponentStore {
       e(v);
     });
   };
+
   setAnchorCellBlock = (b) => (this.anchorCellBlock = b);
   getAnchorCellBlock = () => this.anchorCellBlock;
   setFocusCellBlock = (b) => (this.focusCellBlock = b);

@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, useState, useEffect } from "react";
-import { Transforms, createEditor } from "slate";
+import React, { useCallback, useMemo, useState } from "react";
+import { createEditor } from "slate";
 import { Slate, Editable, withReact } from "slate-react";
 import { withHistory } from "slate-history";
 import {
@@ -8,7 +8,6 @@ import {
   TableToolbar,
   defaultOptions,
 } from './src/slate-table';
-import { createCell } from './src/create-cell';
 
 import initialValue from './initialValue';
 import './index.css';

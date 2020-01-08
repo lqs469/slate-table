@@ -1,5 +1,4 @@
 import { Editor, Transforms } from 'slate';
-import { TableLayout } from '../layout';
 import { defaultOptions } from '../option';
 import removeTable from './removeTable';
 
