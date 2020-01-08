@@ -32,7 +32,7 @@ export const useResizableTable = (props) => {
     if (size) {
       props.onInit && props.onInit(size);
     }
-  }, []);
+  }, [props.onInit]);
 
   const update = () => {
     if (!ref.current) return;

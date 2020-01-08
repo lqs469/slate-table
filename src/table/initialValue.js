@@ -20,7 +20,7 @@ export default [
             data: {
               "width": 200,
             },
-            // rowspan: 2,
+            rowspan: 3,
             // colspan: 2,
             children: [
               {
@@ -34,6 +34,7 @@ export default [
           {
             "type": "editable_table_cell",
             key: 'cell_1',
+            rowspan: 3,
             "children": [
               {
                 "type": "editable_table_content",
@@ -68,46 +69,46 @@ export default [
         "type": "editable_table_row",
         key: 'row_1',
         "children": [
-          {
-            "type": "editable_table_cell",
-            key: 'cell_3',
-            "children": [
-              {
-                "type": "editable_table_content",
-                "children": [
-                  {
-                    type: 'paragraph',
-                    children: [
-                      { text: 'a3' },
-                    ],
-                  },
-                ]
-              }
-            ],
-            "data": {
-              "width": 15
-            }
-          },
-          {
-            "type": "editable_table_cell",
-            key: 'cell_4',
-            "children": [
-              {
-                "type": "editable_table_content",
-                "children": [
-                  {
-                    type: 'paragraph',
-                    children: [
-                      { text: 'a4' },
-                    ],
-                  },
-                ]
-              }
-            ],
-            "data": {
-              "width": 200
-            }
-          },
+          // {
+          //   "type": "editable_table_cell",
+          //   key: 'cell_3',
+          //   "children": [
+          //     {
+          //       "type": "editable_table_content",
+          //       "children": [
+          //         {
+          //           type: 'paragraph',
+          //           children: [
+          //             { text: 'a3' },
+          //           ],
+          //         },
+          //       ]
+          //     }
+          //   ],
+          //   "data": {
+          //     "width": 15
+          //   }
+          // },
+          // {
+          //   "type": "editable_table_cell",
+          //   key: 'cell_4',
+          //   "children": [
+          //     {
+          //       "type": "editable_table_content",
+          //       "children": [
+          //         {
+          //           type: 'paragraph',
+          //           children: [
+          //             { text: 'a4' },
+          //           ],
+          //         },
+          //       ]
+          //     }
+          //   ],
+          //   "data": {
+          //     "width": 200
+          //   }
+          // },
           {
             "type": "editable_table_cell",
             key: 'cell_5',
@@ -135,46 +136,46 @@ export default [
         "type": "editable_table_row",
         key: 'row_2',
         "children": [
-          {
-            "type": "editable_table_cell",
-            key: 'cell_6',
-            "children": [
-              {
-                "type": "editable_table_content",
-                "children": [
-                  {
-                    type: 'paragraph',
-                    children: [
-                      { text: 'a6' },
-                    ],
-                  },
-                ]
-              }
-            ],
-            "data": {
-              "width": 15
-            }
-          },
-          {
-            "type": "editable_table_cell",
-            key: 'cell_7',
-            "children": [
-              {
-                "type": "editable_table_content",
-                "children": [
-                  {
-                    type: 'paragraph',
-                    children: [
-                      { text: 'a7' },
-                    ],
-                  },
-                ]
-              }
-            ],
-            "data": {
-              "width": 200
-            }
-          },
+          // {
+          //   "type": "editable_table_cell",
+          //   key: 'cell_6',
+          //   "children": [
+          //     {
+          //       "type": "editable_table_content",
+          //       "children": [
+          //         {
+          //           type: 'paragraph',
+          //           children: [
+          //             { text: 'a6' },
+          //           ],
+          //         },
+          //       ]
+          //     }
+          //   ],
+          //   "data": {
+          //     "width": 15
+          //   }
+          // },
+          // {
+          //   "type": "editable_table_cell",
+          //   key: 'cell_7',
+          //   "children": [
+          //     {
+          //       "type": "editable_table_content",
+          //       "children": [
+          //         {
+          //           type: 'paragraph',
+          //           children: [
+          //             { text: 'a7' },
+          //           ],
+          //         },
+          //       ]
+          //     }
+          //   ],
+          //   "data": {
+          //     "width": 200
+          //   }
+          // },
           {
             "type": "editable_table_cell",
             key: 'cell_8',

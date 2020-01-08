@@ -18,16 +18,22 @@ const Table = forwardRef((props) => {
   const [disableResizing, forceUpdate] = useState(false);
   const maxWidth = typeof props.maxWidth === 'undefined' ? 'auto' : props.maxWidth + 'px';
   const editor = useEditor();
+  const { onUpdate: update } = props;
 
   const onInit = useCallback((values) => {
-    console.log('onInit')
-    props.onUpdate(editor, values);
-  }, [editor, props]);
+    update(editor, values);
+  }, [editor, update]);
 
-  const onUpdate = useCallback((values) => {
-    console.log('onUpdate')
-    props.onUpdate(editor, values);
-  }, [editor, props]);
+  
+
+  const onResizeStart = useCallback((e) => {
+    e.stopPropagation();
+    console.log('onResizeStart')
+    // editor.blur && editor.blur();
+    removeSelection(editor);
+    // props.store.setAnchorCellBlock(null);
+    // props.store.setFocusCellBlock(null);
+  }, [editor]);
 
   const onResizeStop = useCallback((e, values) => {
     console.log('onResizeStop')
@@ -35,14 +41,10 @@ const Table = forwardRef((props) => {
     props.onResizeStop(editor, values);
   }, [editor, props]);
 
-  const onResizeStart = useCallback((e) => {
-    console.log('onResizeStart')
-    e.stopPropagation();
-    // editor.blur && editor.blur();
-    removeSelection(editor);
-    // props.store.setAnchorCellBlock(null);
-    // props.store.setFocusCellBlock(null);
-  }, [editor]);
+  // 执行 useResizeableTable.update 时触发 
+  // const onUpdate = useCallback((values) => {
+  //   update(editor, values);
+  // }, [editor, update]);
 
   const {
     ref,
@@ -55,7 +57,7 @@ const Table = forwardRef((props) => {
     onResizeStop,
     // onResize,
     onInit,
-    onUpdate,
+    // onUpdate,
     onHandleHover: props.onHandleMouseOver,
   });
 

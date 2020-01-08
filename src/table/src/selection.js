@@ -4,49 +4,6 @@ import { defaultOptions } from "./option";
 
 const insertStyleId = '__slate__table__id';
 
-// const isBlock = (block) => {
-//   console.log('[selection.js]🤯[isBlock]', block);
-//   return true;
-// }
-
-export function removeSelection(editor) {
-  Transforms.unsetNodes(editor, 'selectionColor', {
-    at: [],
-    match: n => !!n.selectionColor,
-  });
-
-  removeSelectionStyle();
-}
-
-export function removeSelectionStyle() {
-  const style = document.querySelector(`style#${insertStyleId}`);
-  if (style) {
-    const head = document.getElementsByTagName('head');
-    const first = head && head.item(0);
-    first && first.removeChild(style);
-  }
-}
-
-export function addSelectionStyle() {
-  // HACK: Add ::selection style when greater than 1 cells selected.
-  if (!document.querySelector(`style#${insertStyleId}`)) {
-    const style = document.createElement('style');
-    style.type = 'text/css';
-    style.id = insertStyleId;
-    const head = document.getElementsByTagName('head');
-    const first = head && head.item(0);
-
-    if (first) {
-      first.appendChild(style);
-      const stylesheet = style.sheet;
-
-      if (stylesheet) {
-        stylesheet.insertRule(`table *::selection { background: none; }`, stylesheet.cssRules.length);
-      }
-    }
-  }
-}
-
 export function addSelection(editor) {
   removeSelection(editor);
   addSelectionStyle();
@@ -97,14 +54,14 @@ export function addSelection(editor) {
 
   coverCellsPath.forEach(([, path]) => {
     let at = path;
-
+    
     if (cellReMap[path.join('')]) {
       at = cellReMap[path.join('')].split('')
-        .map(item => parseInt(item, 10));
+      .map(item => parseInt(item, 10));
     }
 
     Transforms.setNodes(editor, {
-      selectionColor: 'rgb(185, 211, 252)',
+      selectionColor: defaultOptions.selectionColor,
     }, {
       at,
       match: n => n.type === defaultOptions.typeCell,
@@ -121,7 +78,7 @@ export const splitedTable = (editor, table) => {
     at: table[1],
     match: n => n.type === defaultOptions.typeCell,
   })];
-  
+
   if (!cells || !cells.length) return {};
 
   const cellMap = {};
@@ -130,7 +87,7 @@ export const splitedTable = (editor, table) => {
 
   for (let i = 0; i < cells.length; i++) {
     const [cell, path] = cells[i];
-    const { rowspan = 0, colspan = 0 } = cell;
+    const { rowspan = 1, colspan = 1 } = cell;
 
     if (colspan > 1) {
       const y = path[tableDepth];
@@ -140,8 +97,15 @@ export const splitedTable = (editor, table) => {
           const key = _p.join('');
           cells[j][1][tableDepth + 1] += (colspan - 1);
           const value = cells[j][1].join('');
-          cellMap[key] = value;
-          cellReMap[value] = key;
+
+          if (cellReMap[key]) {
+            cellMap[cellReMap[key]] = value;
+            cellReMap[value] = cellReMap[key];
+            delete cellReMap[key];
+          } else {
+            cellMap[key] = value;
+            cellReMap[value] = key;
+          }
         }
 
         if (_p[tableDepth] > y) {
@@ -164,8 +128,15 @@ export const splitedTable = (editor, table) => {
           const key = cells[j][1].join('');
           cells[j][1][tableDepth + 1] += colspan;
           const value = cells[j][1].join('');
-          cellMap[key] = value;
-          cellReMap[value] = key;
+
+          if (cellReMap[key]) {
+            cellMap[cellReMap[key]] = value;
+            cellReMap[value] = cellReMap[key];
+            delete cellReMap[key];
+          } else {
+            cellMap[key] = value;
+            cellReMap[value] = key;
+          }
         }
 
         if (_y >= y + rowspan) {
@@ -187,5 +158,43 @@ export const splitedTable = (editor, table) => {
     cells,
     cellMap,
     cellReMap,
+  }
+}
+
+export function removeSelection(editor) {
+  Transforms.unsetNodes(editor, 'selectionColor', {
+    at: [],
+    match: n => !!n.selectionColor,
+  });
+
+  removeSelectionStyle();
+}
+
+export function removeSelectionStyle() {
+  const style = document.querySelector(`style#${insertStyleId}`);
+  if (style) {
+    const head = document.getElementsByTagName('head');
+    const first = head && head.item(0);
+    first && first.removeChild(style);
+  }
+}
+
+export function addSelectionStyle() {
+  // HACK: Add ::selection style when greater than 1 cells selected.
+  if (!document.querySelector(`style#${insertStyleId}`)) {
+    const style = document.createElement('style');
+    style.type = 'text/css';
+    style.id = insertStyleId;
+    const head = document.getElementsByTagName('head');
+    const first = head && head.item(0);
+
+    if (first) {
+      first.appendChild(style);
+      const stylesheet = style.sheet;
+
+      if (stylesheet) {
+        stylesheet.insertRule(`table *::selection { background: none; }`, stylesheet.cssRules.length);
+      }
+    }
   }
 }

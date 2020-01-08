@@ -49,7 +49,7 @@ export default function mergeSelection(editor) {
     return;
   }
 
-  const tmpContent = [];
+  const tmpContent = {};
 
   _table.forEach(row => {
     row.forEach(col => {
@@ -63,14 +63,10 @@ export default function mergeSelection(editor) {
   _table.forEach(row => {
     row.forEach(col => {
       if (col.targetCell && col.cell.key !== col.targetCell.key) {
-        const currContent = col.cell.children[0];
+        const currContent = col.cell.children;
 
-        if (
-          currContent
-          && currContent.children
-          && currContent.children.length
-        ) {
-          tmpContent.push(...currContent.children);
+        if (currContent && currContent.length) {
+          tmpContent[col.cell.key] = currContent;
         }
 
         Transforms.removeNodes(editor, {
@@ -143,20 +139,15 @@ export default function mergeSelection(editor) {
     at: editor.selection.anchor.path,
     match: n => n.type === defaultOptions.typeCell,
   })];
-  
-  tmpContent.forEach(content => {
+
+  Object.values(tmpContent).forEach(content => {
     const nodes = [...Editor.nodes(editor, {
       at: cell[1],
       match: n => n.type === defaultOptions.typeContent,
     })];
     const [, targetPath] = nodes[nodes.length - 1];
 
-    const tableContent = {
-      type: defaultOptions.typeContent,
-      children: [content],
-    };
-
-    Transforms.insertNodes(editor, tableContent, {
+    Transforms.insertNodes(editor, content, {
       at: Path.next(targetPath),
     });
   });
