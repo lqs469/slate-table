@@ -4,7 +4,129 @@ import { defaultOptions } from "./option";
 
 const insertStyleId = '__slate__table__id';
 
-export function addSelection(editor) {
+export const splitedTable = (editor, table, head) => {
+  const tableDepth = table[1].length;
+
+  const cells = [...Editor.nodes(editor, {
+    at: table[1],
+    match: n => n.type === defaultOptions.typeCell,
+  })].map(([cell, path]) => ({
+    cell,
+    path,
+    realPath: [...path],
+  }));
+  if (!cells.length) return {};
+
+  // let cellWidth = 0;
+  const cellMap = {};
+  const cellReMap = {};
+  const gridTable = [];
+  let insertPosition = null;
+
+  for (let i = 0; i < cells.length; i++) {
+    const { cell, path, realPath } = cells[i];
+    const { rowspan = 1, colspan = 1 } = cell;
+    let y = path[tableDepth];
+    let x = path[tableDepth + 1];
+
+    if (!gridTable[y]) {
+      gridTable[y] = [];
+    }
+
+    while (gridTable[y][x]) {
+      x++;
+    }
+
+    for (let j = 0; j < rowspan; j++) {
+      for (let k = 0; k < colspan; k++) {
+        let _y = y + j;
+        let _x = x + k;
+
+        if (!gridTable[_y]) {
+          gridTable[_y] = [];
+        }
+
+        gridTable[_y][_x] = {
+          cell,
+          path: [...realPath.slice(0, tableDepth), _y, _x],
+          isReal: (rowspan === 1 && colspan === 1)
+            || (_y === y && _x === x),
+          // isSelected: !!cell.selectionColor,
+          originPath: path,
+        };
+
+        if (!insertPosition && head[0].key === cell.key) {
+          insertPosition = gridTable[_y][_x];
+          gridTable[_y][_x].isInsertPosition = true;
+        }
+      }
+    }
+
+    // cellWidth = Math.max(
+    //   cellWidth,
+    //   (path[tableDepth + 1] + 1)
+    //   + ((cell.data && cell.data.colspan) ? cell.data.colspan : 0),
+    // );
+  };
+
+  // console.log(cells);
+
+  // cells.forEach(([cell, path]) => {
+  //   const { realPath = path } = cell;
+  //   let [y, x] = realPath.slice(tableDepth);
+  //   const { rowspan = 0, colspan = 0 } = cell;
+
+  //   const h = rowspan || 1;
+  //   const w = colspan || 1;
+
+  //   for (let i = y; i < y + h; i++) {
+  //     for (let j = x; j < x + w; j++) {
+  //       if (!gridTable[i]) {
+  //         gridTable[i] = [];
+  //       }
+
+  //       gridTable[i][j] = {
+  //         cell,
+  //         path: realPath,
+  //         isReal: (h === 1 && w === 1) || (i === y && j === x),
+  //         isSelected: !!cell.selectionColor,
+  //         originPath: path,
+  //       };
+
+  //       if (!insertPosition && cell.selectionColor) {
+  //         insertPosition = gridTable[i][j];
+  //         gridTable[i][j].isInsertPosition = true;
+  //       }
+  //     }
+  //   }
+  // });
+
+  const getCell = match => {
+    const result = [];
+    gridTable.forEach(row => {
+      row.forEach(col => {
+        if (match(col)) {
+          result.push(col);
+        }
+      });
+    });
+
+    return result;
+  }
+
+  return {
+    insertPosition,
+    gridTable,
+    tableDepth,
+    cells,
+    cellMap,
+    cellReMap,
+    getCell,
+    // cellWidth,
+  }
+}
+
+export function addSelection(editor, targetKey) {
   removeSelection(editor);
   addSelectionStyle();
   
@@ -14,151 +136,57 @@ export function addSelection(editor) {
   const [table] = [...Editor.nodes(editor, {
     match: n => n.type === defaultOptions.typeTable,
   })];
-
   if (!table) return;
-  const tableDepth = table[1].length;
 
-  const { cells, cellMap, cellReMap } = splitedTable(editor, table);
+  const [targetHead] = [...Editor.nodes(editor, {
+    at: selection.anchor.path,
+    match: n => n.type === defaultOptions.typeCell,
+  })];
+  if (!targetHead) return;
 
-  let headPath = selection.anchor.path.slice(0, tableDepth + 2);
-  let tailPath = selection.focus.path.slice(0, tableDepth + 2);
+  const { gridTable, getCell } = splitedTable(editor, table, targetHead);
+
+  const [head] = getCell(n => n.cell.key === targetHead[0].key);
+  const [tail] = getCell(n => n.cell.key === targetKey);
+  if (!tail || !head) return;
   
-  if (cellMap[headPath.join('')]) {
-    headPath = cellMap[headPath.join('')].split('')
-      .map(item => parseInt(item, 10));;
-  }
-  
-  if (cellMap[tailPath.join('')]) {
-    tailPath = cellMap[tailPath.join('')].split('')
-      .map(item => parseInt(item, 10));
-  }
-  
+  const { path: tailPath } = tail;
+  const { path: headPath } = head;
+
   headPath.forEach((item, index) => {
     headPath[index] = Math.min(item, tailPath[index]);
     tailPath[index] = Math.max(item, tailPath[index]);
   });
 
   const coverCellsPath = [];
-  cells.forEach(([cell, path]) => {
-    const isOver = path.findIndex((item, index) => {
-      if (item < headPath[index] || item > tailPath[index]) {
-        return true;
+
+  gridTable.forEach(row => {
+    row.forEach(col => {
+      const { path } = col;
+
+      const isOver = path.findIndex((item, index) => {
+        if (item < headPath[index] || item > tailPath[index]) {
+          return true;
+        }
+        return false;
+      });
+  
+      if (isOver < 0) {
+        coverCellsPath.push(col);
       }
-      return false;
     });
+  });
 
-    if (isOver < 0) {
-      coverCellsPath.push([cell, path]);
-    }
-  })
-
-  coverCellsPath.forEach(([, path]) => {
-    let at = path;
-    
-    if (cellReMap[path.join('')]) {
-      at = cellReMap[path.join('')].split('')
-      .map(item => parseInt(item, 10));
-    }
-
+  coverCellsPath.forEach(({ originPath }) => {
     Transforms.setNodes(editor, {
       selectionColor: defaultOptions.selectionColor,
     }, {
-      at,
+      at: originPath,
       match: n => n.type === defaultOptions.typeCell,
     });
   });
 
   return coverCellsPath;
-}
-
-export const splitedTable = (editor, table) => {
-  const tableDepth = table[1].length;
-
-  const cells = [...Editor.nodes(editor, {
-    at: table[1],
-    match: n => n.type === defaultOptions.typeCell,
-  })];
-
-  if (!cells || !cells.length) return {};
-
-  const cellMap = {};
-  const cellReMap = {};
-  let cellWidth = 0;
-
-  for (let i = 0; i < cells.length; i++) {
-    const [cell, path] = cells[i];
-    const { rowspan = 1, colspan = 1 } = cell;
-
-    if (colspan > 1) {
-      const y = path[tableDepth];
-      for (let j = i + 1; j < cells.length; j++) {
-        const [, _p] = cells[j];
-        if (_p[tableDepth] === y) {
-          const key = _p.join('');
-          cells[j][1][tableDepth + 1] += (colspan - 1);
-          const value = cells[j][1].join('');
-
-          if (cellReMap[key]) {
-            cellMap[cellReMap[key]] = value;
-            cellReMap[value] = cellReMap[key];
-            delete cellReMap[key];
-          } else {
-            cellMap[key] = value;
-            cellReMap[value] = key;
-          }
-        }
-
-        if (_p[tableDepth] > y) {
-          break;
-        }
-      }
-    }
-
-    if (rowspan > 1) {
-      const y = path[tableDepth];
-      const x = path[tableDepth + 1];
-      for (let j = i + 1; j < cells.length; j++) {
-        const _y = cells[j][1][tableDepth];
-        const _x = cells[j][1][tableDepth + 1];
-        if (
-          _y > y
-          && _y < y + rowspan
-          && _x >= x
-        ) {
-          const key = cells[j][1].join('');
-          cells[j][1][tableDepth + 1] += colspan;
-          const value = cells[j][1].join('');
-
-          if (cellReMap[key]) {
-            cellMap[cellReMap[key]] = value;
-            cellReMap[value] = cellReMap[key];
-            delete cellReMap[key];
-          } else {
-            cellMap[key] = value;
-            cellReMap[value] = key;
-          }
-        }
-
-        if (_y >= y + rowspan) {
-          break;
-        }
-      }
-    }
-
-    cellWidth = Math.max(
-      cellWidth,
-      (path[tableDepth + 1] + 1)
-      + ((cell.data && cell.data.colspan) ? cell.data.colspan : 0),
-    );
-  };
-
-  return {
-    cellWidth,
-    tableDepth,
-    cells,
-    cellMap,
-    cellReMap,
-  }
 }
 
 export function removeSelection(editor) {

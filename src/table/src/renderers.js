@@ -7,6 +7,7 @@ import { ComponentStore } from './store';
 import { removeSelection, addSelection } from './selection';
 import { useResizableTable } from './use-resizable';
 import { defaultOptions } from './option';
+import throttle from 'lodash/fp/throttle';
 // import { HistoryEditor } from 'slate-history';
 // import * as table from './layout';
 
@@ -85,15 +86,26 @@ const Table = forwardRef((props) => {
   }, [editor]);
 
   useEffect(() => {
-    addSelection(editor);
-  }, [editor, editor.selection]);
-
-  useEffect(() => {
     window.addEventListener('mousedown', onClearSelection);
     return () => {
       window.removeEventListener('mousedown', onClearSelection);
     }
   }, [onClearSelection]);
+
+  // useEffect(() => {
+  //   addSelection(editor);
+  // }, [editor, editor.selection]);
+
+  // const addSelect = useCallback((e) => {
+  //   const cell = e.target.closest('td');
+  //   console.log(cell, cell.getAttribute('data-key'));
+
+  //   if (cell) {
+  //     addSelection(editor, cell.getAttribute('data-key'));
+  //   }
+  // }, [editor]);
+
+  const [holding, setHolding] = useState(false);
 
   return (
     <table
@@ -104,6 +116,23 @@ const Table = forwardRef((props) => {
       // type={props.type}
       onDragStart={e => {
         e.preventDefault();
+      }}
+      onMouseDown={() => {
+        setHolding(true);
+      }}
+      onMouseMove={throttle(100, e => {
+        if (holding && e.target) {
+          const cell = e.target.closest('td');
+          if (cell) {
+            addSelection(editor, cell.getAttribute('data-key'));
+          }
+        }
+      })}
+      onMouseUp={() => {
+        setHolding(false);
+      }}
+      onMouseLeave={() => {
+        setHolding(false);
       }}
     >
       {props.children}

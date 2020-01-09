@@ -4,75 +4,42 @@ import { splitedTable } from '../selection';
 
 
 export default function mergeSelection(editor) {
-  let insertPosition = null;
   const [table] = [...Editor.nodes(editor, {
     match: n => n.type === defaultOptions.typeTable,
   })];
-
   if (!table) return;
-  const tableDepth = table[1].length;
 
-  let { cells } = splitedTable(editor, table);
+  const [targetHead] = [...Editor.nodes(editor, {
+    at: editor.selection.anchor.path,
+    match: n => n.type === defaultOptions.typeCell,
+  })];
+  if (!targetHead) return;
 
-  const _table = [];
-  cells.forEach(([cell, path]) => {
-    let [y, x] = path.slice(tableDepth);
-    const { rowspan = 0, colspan = 0 } = cell;
-
-    const h = rowspan || 1;
-    const w = colspan || 1;
-
-    for (let i = y; i < y + h; i++) {
-      for (let j = x; j < x + w; j++) {
-        if (!_table[i]) {
-          _table[i] = [];
-        }
-
-        _table[i][j] = {
-          cell,
-          path,
-          isReal: (h === 1 && w === 1) || (i === y && j === x),
-          isSelected: !!cell.selectionColor,
-        };
-
-        if (!insertPosition && cell.selectionColor) {
-          insertPosition = _table[i][j];
-          _table[i][j].isInsertPosition = true;
-        }
-      }
-    }
-  });
-
-  const selectedTable = checkMerge(_table);
+  const { gridTable, insertPosition } = splitedTable(editor, table, targetHead);
   
+  const selectedTable = checkMerge(gridTable);
   if (!selectedTable || !insertPosition) {
     return;
   }
 
   const tmpContent = {};
-
-  _table.forEach(row => {
+  gridTable.forEach(row => {
     row.forEach(col => {
-      if (col.isSelected && !col.isInsertPosition) {
-        col.isReal = false;
-        col.targetCell = insertPosition.cell;
-      }
-    });
-  });
-
-  _table.forEach(row => {
-    row.forEach(col => {
-      if (col.targetCell && col.cell.key !== col.targetCell.key) {
-        const currContent = col.cell.children;
-
-        if (currContent && currContent.length) {
-          tmpContent[col.cell.key] = currContent;
+      if (col.cell.selectionColor && !col.isInsertPosition) {
+        if (col.isReal) {
+          const currContent = col.cell.children;
+          if (currContent && currContent.length) {
+            tmpContent[col.cell.key] = currContent;
+          }
+          
+          Transforms.removeNodes(editor, {
+            at: table[1],
+            match: n => n.key === col.cell.key,
+          });
         }
-
-        Transforms.removeNodes(editor, {
-          at: table[1],
-          match: n => n.key === col.cell.key,
-        });
+        
+        col.targetCell = insertPosition.cell;
+        col.isReal = false;
       }
     });
   });
@@ -105,21 +72,22 @@ export default function mergeSelection(editor) {
   });
 
   function checkSpan() {
-    _table.forEach(row => {
+    gridTable.forEach(row => {
       const isFakeRow = row.reduce((p, c) => p && !c.isReal, true);
   
       if (isFakeRow) {
-        const originCol = new Map();
+        const originCell = new Map();
         row.forEach(col => {
           const cell = col.targetCell || col.cell;
-          originCol.set(cell.key, cell);
+          originCell.set(cell.key, cell);
         });
         
-        originCol.forEach(col => {
+        originCell.forEach(cell => {
           const [node] = [...Editor.nodes(editor, {
             at: table[1],
-            match: n => n.key === col.key,
+            match: n => n.key === cell.key,
           })];
+
           if (node && node[0]) {
             Transforms.setNodes(editor, {
               rowspan: node[0].rowspan
@@ -127,7 +95,7 @@ export default function mergeSelection(editor) {
                 : 1,
             }, {
               at: table[1],
-              match: n => n.key === col.key,
+              match: n => n.key === node[0].key,
             });
           }
         });
@@ -135,28 +103,32 @@ export default function mergeSelection(editor) {
     });
   }
 
-  const [cell] = [...Editor.nodes(editor, {
-    at: editor.selection.anchor.path,
-    match: n => n.type === defaultOptions.typeCell,
+  const [insertCell] = [...Editor.nodes(editor, {
+    at: table[1],
+    match: n => n.key === insertPosition.cell.key,
   })];
+  if (!insertCell) return;
 
   Object.values(tmpContent).forEach(content => {
-    const nodes = [...Editor.nodes(editor, {
-      at: cell[1],
+    const insertContents = [...Editor.nodes(editor, {
+      at: insertCell[1],
       match: n => n.type === defaultOptions.typeContent,
     })];
-    const [, targetPath] = nodes[nodes.length - 1];
 
-    Transforms.insertNodes(editor, content, {
-      at: Path.next(targetPath),
-    });
+    if (insertContents.length) {
+      const targetPath = insertContents[insertContents.length - 1][1];
+      
+      Transforms.insertNodes(editor, content, {
+        at: Path.next(targetPath),
+      });
+    }
   });
 }
 
 function checkMerge(table) {
   let selectedCount = 0;
   const selectedTable = table.reduce((t, row) => {
-    const currRow = row.filter(cell => cell.isSelected);
+    const currRow = row.filter(col => col.cell.selectionColor);
     if (currRow.length) {
       t.push(currRow);
       selectedCount += currRow.length;

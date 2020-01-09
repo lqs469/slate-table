@@ -1,7 +1,7 @@
 // import { Block, BlockJSON, Text } from 'slate';
 import { defaultOptions } from './option';
 
-export function createCell(elements, data) {
+export function createCell({ elements, data = {}, colspan, rowspan } = {}) {
   const { typeCell, typeContent, defaultColumnWidth } = defaultOptions;
 
   return {
@@ -17,5 +17,7 @@ export function createCell(elements, data) {
       width: defaultColumnWidth,
       ...data,
     },
+    colspan,
+    rowspan,
   };
 }

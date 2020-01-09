@@ -1,65 +1,79 @@
-import { Editor, Transforms } from 'slate';
-// import { TableLayout } from '../layout';
-
+import { Editor, Transforms, Path } from 'slate';
 import { createCell } from '../create-cell';
 import { defaultOptions } from '../option';
+import { splitedTable } from '../selection';
 
-export default function insertRight(editor, opts) {
-  // const table = TableLayout.create(editor, opts);
-  // if (!table) return editor;
-  // const columnIndex = typeof at !== 'undefined' ? at : table.columnIndex;
+export default function insertRight(editor) {
+  const { selection } = editor;
+  if (!selection) return;
 
-  // const added = {};
-  // if (table.table[0].length === columnIndex) {
-  //   table.table.forEach((row, i) => {
-  //     const cell = row[columnIndex];
-  //     const rowKey = table.currentTable.nodes.get(i).key;
-  //     const newCell = createCell(opts, '');
-  //     editor.insertNodeByKey(rowKey, cell.nodeIndex + 1, newCell);
-  //   });
-  // } else {
-  //   table.table.forEach(row => {
-  //     const cell = row[columnIndex];
-  //     if (cell.colspan === 1 || table.table.length === 1) {
-  //       if (added[cell.rowKey]) return;
-  //       const newCell = createCell(opts, '', { rowspan: `${cell.rowspan}` });
-  //       editor.insertNodeByKey(cell.rowKey, cell.nodeIndex + 1, newCell);
-  //       added[cell.rowKey] = true;
-  //     } else {
-  //       editor.setNodeByKey(cell.key, {
-  //         type: cell.block.type,
-  //         data: { ...cell.block.data.toObject(), colspan: cell.colspan + 1 },
-  //       });
-  //     }
-  //   });
-  // }
-
-  const allPath = editor.selection.anchor.path;
-
-  const matchRows = [...Editor.nodes(editor, {
-    at: [],
-    match: n => n.type === defaultOptions.typeRow,
+  const [table] = [...Editor.nodes(editor, {
+    match: n => n.type === defaultOptions.typeTable,
   })];
+  if (!table) return;
+  const xPosition = table[1].length + 1;
+
+  const [targetHead] = [...Editor.nodes(editor, {
+    at: editor.selection.anchor.path,
+    match: n => n.type === defaultOptions.typeCell,
+  })];
+  if (!targetHead) return;
+
+  const {
+    gridTable,
+    insertPosition: iP,
+    getCell,
+  } = splitedTable(editor, table, targetHead);
   
-  matchRows.forEach(([, rowPath]) => {
-    const at = allPath.map((item, index) =>
-      typeof rowPath[index] === 'number'
-        ? rowPath[index]
-        : item
+  const x = iP.path[xPosition] + (iP.cell.colspan || 1) - 1;
+  
+  const insertCellsMap = new Map();
+  let checkInsertable = true;
+
+  gridTable.forEach(row => {
+    const col = row[x];
+
+    const [originCell] = getCell(n =>
+      (n.cell.key === col.cell.key && n.isReal)
     );
+    const { cell, path } = originCell;
 
-    const [[matchCell, path]] = Editor.nodes(editor, {
-      at,
-      match: n => n.type === defaultOptions.typeCell,
-    });
+    if (
+      (col.isReal && (!col.cell.colspan || col.cell.colspan === 1))
+      || !row[x + 1]
+    ) {
+      insertCellsMap.set(cell.key, originCell);
+    } else {
+      if (
+        path[xPosition] + (cell.colspan || 1) - 1 === x
+      ) {
+        insertCellsMap.set(cell.key, originCell);
+      } else {
+        checkInsertable = false;
+        return;
+      }
+    }
+  });
 
-    path[path.length - 1]++;
+  if (!checkInsertable) {
+    return;
+  }
 
-    const newCell = createCell();
-    Transforms.insertNodes(editor, newCell, {
-      at: path,
-      match: n => n.key === matchCell.key,
-    });
+  insertCellsMap.forEach(({ cell, isReal }) => {
+    if (isReal) {
+      const [targetCell] = [...Editor.nodes(editor, {
+        at: table[1],
+        match: n => n.key === cell.key,
+      })];
+  
+      const newCell = createCell({
+        rowspan: cell.rowspan || 1,
+      });
+
+      Transforms.insertNodes(editor, newCell, {
+        at: Path.next(targetCell[1]),
+      });
+    }
   });
 }
 

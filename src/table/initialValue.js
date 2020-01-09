@@ -34,7 +34,7 @@ export default [
           {
             "type": "editable_table_cell",
             key: 'cell_1',
-            rowspan: 3,
+            rowspan: 2,
             "children": [
               {
                 "type": "editable_table_content",
@@ -156,26 +156,26 @@ export default [
           //     "width": 15
           //   }
           // },
-          // {
-          //   "type": "editable_table_cell",
-          //   key: 'cell_7',
-          //   "children": [
-          //     {
-          //       "type": "editable_table_content",
-          //       "children": [
-          //         {
-          //           type: 'paragraph',
-          //           children: [
-          //             { text: 'a7' },
-          //           ],
-          //         },
-          //       ]
-          //     }
-          //   ],
-          //   "data": {
-          //     "width": 200
-          //   }
-          // },
+          {
+            "type": "editable_table_cell",
+            key: 'cell_7',
+            "children": [
+              {
+                "type": "editable_table_content",
+                "children": [
+                  {
+                    type: 'paragraph',
+                    children: [
+                      { text: 'a7' },
+                    ],
+                  },
+                ]
+              }
+            ],
+            "data": {
+              "width": 200
+            }
+          },
           {
             "type": "editable_table_cell",
             key: 'cell_8',
