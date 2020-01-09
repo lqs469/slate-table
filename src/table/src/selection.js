@@ -69,38 +69,6 @@ export const splitedTable = (editor, table, head) => {
     // );
   };
 
-  // console.log(cells);
-
-  // cells.forEach(([cell, path]) => {
-  //   const { realPath = path } = cell;
-  //   let [y, x] = realPath.slice(tableDepth);
-  //   const { rowspan = 0, colspan = 0 } = cell;
-
-  //   const h = rowspan || 1;
-  //   const w = colspan || 1;
-
-  //   for (let i = y; i < y + h; i++) {
-  //     for (let j = x; j < x + w; j++) {
-  //       if (!gridTable[i]) {
-  //         gridTable[i] = [];
-  //       }
-
-  //       gridTable[i][j] = {
-  //         cell,
-  //         path: realPath,
-  //         isReal: (h === 1 && w === 1) || (i === y && j === x),
-  //         isSelected: !!cell.selectionColor,
-  //         originPath: path,
-  //       };
-
-  //       if (!insertPosition && cell.selectionColor) {
-  //         insertPosition = gridTable[i][j];
-  //         gridTable[i][j].isInsertPosition = true;
-  //       }
-  //     }
-  //   }
-  // });
-
   const getCell = match => {
     const result = [];
     gridTable.forEach(row => {
