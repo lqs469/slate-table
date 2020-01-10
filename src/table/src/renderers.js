@@ -1,17 +1,11 @@
 import React, { memo, useState, useCallback, useEffect, forwardRef } from 'react';
 import { Editor, Transforms } from "slate";
-import {
-  useEditor,
-} from "slate-react";
-import { ComponentStore } from './store';
+import { useEditor } from "slate-react";
 import { removeSelection, addSelection } from './selection';
 import { useResizableTable } from './use-resizable';
 import { defaultOptions } from './option';
-import throttle from 'lodash/fp/throttle';
 // import { HistoryEditor } from 'slate-history';
 // import * as table from './layout';
-
-const store = new ComponentStore();
 
 
 // 表格组件
@@ -96,16 +90,22 @@ const Table = forwardRef((props) => {
   //   addSelection(editor);
   // }, [editor, editor.selection]);
 
-  // const addSelect = useCallback((e) => {
-  //   const cell = e.target.closest('td');
-  //   console.log(cell, cell.getAttribute('data-key'));
-
-  //   if (cell) {
-  //     addSelection(editor, cell.getAttribute('data-key'));
-  //   }
-  // }, [editor]);
-
   const [holding, setHolding] = useState(false);
+  const [startKey, setStartKey] = useState(null);
+
+  const onSelected = useCallback(({ target }) => {
+    if (holding) {
+      setHolding(false);
+      setStartKey(null);
+      if (target) {
+        const cell = target.closest('td');
+        if (cell) {
+          const key = cell.getAttribute('data-key');
+          props.store.setFocusCellBlock(key);
+        }
+      }
+    }
+  }, [holding, setHolding]);
 
   return (
     <table
@@ -117,23 +117,28 @@ const Table = forwardRef((props) => {
       onDragStart={e => {
         e.preventDefault();
       }}
-      onMouseDown={() => {
-        setHolding(true);
-      }}
-      onMouseMove={throttle(100, e => {
-        if (holding && e.target) {
-          const cell = e.target.closest('td');
+      onMouseDown={({ target }) => {
+        if (target) {
+          setHolding(true);
+          const cell = target.closest('td');
           if (cell) {
-            addSelection(editor, cell.getAttribute('data-key'));
+            const startKey = cell.getAttribute('data-key');
+            setStartKey(startKey);
+            props.store.setAnchorCellBlock(startKey);
           }
         }
-      })}
-      onMouseUp={() => {
-        setHolding(false);
       }}
-      onMouseLeave={() => {
-        setHolding(false);
+      onMouseMove={({ target }) => {
+        if (holding && target) {
+          const cell = target.closest('td');
+          if (cell) {
+            const endKey = cell.getAttribute('data-key');
+            addSelection(editor, startKey, endKey);
+          }
+        }
       }}
+      onMouseUp={onSelected}
+      onMouseLeave={onSelected}
     >
       {props.children}
     </table>
@@ -304,7 +309,7 @@ const updateWidth = (editor, value) => {
 
 // Table
 export const TableElement = (props) => {
-  const { attributes, children, element } = props;
+  const { store, attributes, children, element } = props;
   const editor = useEditor();
 
   switch (element.type) {

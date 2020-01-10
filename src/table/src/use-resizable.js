@@ -4,6 +4,7 @@ const handlerSelector = '[data-resize-handle]';
 
 export const useResizableTable = (props) => {
   const ref = React.useRef(null);
+  const { onInit } = props;
 
   const createSize = () => {
     if (!ref.current) return;
@@ -30,9 +31,9 @@ export const useResizableTable = (props) => {
     if (!ref.current) return;
     const size = createSize();
     if (size) {
-      props.onInit && props.onInit(size);
+      onInit && onInit(size);
     }
-  }, [props.onInit]);
+  }, [onInit]);
 
   const update = () => {
     if (!ref.current) return;

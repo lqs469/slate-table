@@ -3,9 +3,9 @@ import { createCell } from '../create-cell';
 import { defaultOptions } from '../option';
 import { splitedTable } from '../selection';
 
-export default function insertRight(editor) {
+export default function insertRight(editor, startKey, endKey) {
   const { selection } = editor;
-  if (!selection) return;
+  if (!selection || !startKey || !endKey) return;
 
   const [table] = [...Editor.nodes(editor, {
     match: n => n.type === defaultOptions.typeTable,
@@ -13,17 +13,14 @@ export default function insertRight(editor) {
   if (!table) return;
   const xPosition = table[1].length + 1;
 
-  const [targetHead] = [...Editor.nodes(editor, {
-    at: editor.selection.anchor.path,
-    match: n => n.type === defaultOptions.typeCell,
-  })];
-  if (!targetHead) return;
-
-  const {
-    gridTable,
-    insertPosition: iP,
-    getCell,
-  } = splitedTable(editor, table, targetHead);
+  const { gridTable, getCell } = splitedTable(editor, table);
+  
+  const [startCell] = getCell(n => n.cell.key === startKey);
+  const [endCell] = getCell(n => n.cell.key === endKey);
+  
+  const iP = startCell.path[xPosition] > endCell.path[xPosition]
+    ? startCell
+    : endCell;
   
   const x = iP.path[xPosition] + (iP.cell.colspan || 1) - 1;
   

@@ -3,9 +3,9 @@ import { defaultOptions } from '../option';
 import { splitedTable } from '../selection';
 import { createRow } from '../create-row';
 
-export default function insertAbove(editor) {
+export default function insertAbove(editor, startKey, endKey) {
   const { selection } = editor;
-  if (!selection) return;
+  if (!selection || !startKey || !endKey) return;
 
   const [table] = [...Editor.nodes(editor, {
     match: n => n.type === defaultOptions.typeTable,
@@ -13,17 +13,14 @@ export default function insertAbove(editor) {
   if (!table) return;
   const yPosition = table[1].length;
 
-  const [targetHead] = [...Editor.nodes(editor, {
-    at: editor.selection.anchor.path,
-    match: n => n.type === defaultOptions.typeCell,
-  })];
-  if (!targetHead) return;
-
-  const {
-    gridTable,
-    insertPosition,
-    getCell,
-  } = splitedTable(editor, table, targetHead);
+  const { gridTable, getCell } = splitedTable(editor, table);
+  
+  const [startCell] = getCell(n => n.cell.key === startKey);
+  const [endCell] = getCell(n => n.cell.key === endKey);
+  
+  const insertPosition = startCell.path[yPosition] < endCell.path[yPosition]
+    ? startCell
+    : endCell;
 
   let checkInsertEnable = true;
   const insertCells = new Map();

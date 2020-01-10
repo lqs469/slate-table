@@ -1,17 +1,22 @@
 import React from 'react';
 import { useEditor } from "slate-react";
 import { defaultOptions } from './option';
-import commands from './commands';
 import { TableElement } from './renderers';
+import { ComponentStore } from './store';
+import commands from './commands';
 
 const TABLE_HANDLER = 'table_handler';
+const store = new ComponentStore();
 
 const withTable = editor => {
   const { exec } = editor
-
   editor.exec = command => {
     if (command.type === TABLE_HANDLER) {
-      commands[command.method](editor);
+      commands[command.method](
+        editor,
+        store.getAnchorCellBlock(),
+        store.getFocusCellBlock(),
+      );
     } else {
       exec(command)
     }
@@ -22,7 +27,6 @@ const withTable = editor => {
 
 const TableToolbar = () => {
   const editor = useEditor();
-
   const TableToolbarBtn = ({ method, children }) => {
     return (
       <button onMouseDown={event => {
@@ -50,10 +54,11 @@ const TableToolbar = () => {
   )
 }
 
+const Table = props => <TableElement {...props} store={store} />
 
 export {
-  TableElement,
   withTable,
   TableToolbar,
   defaultOptions,
+  Table,
 }

@@ -2,30 +2,26 @@ import { Editor, Transforms, Path } from 'slate';
 import { defaultOptions } from '../option';
 import { splitedTable } from '../selection';
 
-
-export default function mergeSelection(editor) {
+export default function mergeSelection(editor, startKey) {
   const [table] = [...Editor.nodes(editor, {
     match: n => n.type === defaultOptions.typeTable,
   })];
   if (!table) return;
 
-  const [targetHead] = [...Editor.nodes(editor, {
-    at: editor.selection.anchor.path,
-    match: n => n.type === defaultOptions.typeCell,
-  })];
-  if (!targetHead) return;
+  const { gridTable } = splitedTable(editor, table, startKey);
 
-  const { gridTable, insertPosition } = splitedTable(editor, table, targetHead);
-  
   const selectedTable = checkMerge(gridTable);
-  if (!selectedTable || !insertPosition) {
-    return;
-  }
+  if (!selectedTable) return;
 
+  const insertPosition = selectedTable[0][0];
   const tmpContent = {};
+
   gridTable.forEach(row => {
     row.forEach(col => {
-      if (col.cell.selectionColor && !col.isInsertPosition) {
+      if (
+        col.cell.selectionColor
+        && col.cell.key !== insertPosition.cell.key
+      ) {
         if (col.isReal) {
           const currContent = col.cell.children;
           if (currContent && currContent.length) {
@@ -144,7 +140,6 @@ function checkMerge(table) {
   let couldMerge = true;
   selectedTable.forEach(row => {
     if (row.length !== selectedWidth) {
-      alert('无法合并');
       couldMerge = false;
     }
   });

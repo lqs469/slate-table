@@ -4,7 +4,10 @@ import { defaultOptions } from "./option";
 
 const insertStyleId = '__slate__table__id';
 
-export const splitedTable = (editor, table, head) => {
+export const splitedTable = (editor, table, startKey) => {
+  if (typeof startKey === 'object') {
+    startKey = startKey[0].key
+  }
   const tableDepth = table[1].length;
 
   const cells = [...Editor.nodes(editor, {
@@ -17,7 +20,6 @@ export const splitedTable = (editor, table, head) => {
   }));
   if (!cells.length) return {};
 
-  // let cellWidth = 0;
   const cellMap = {};
   const cellReMap = {};
   const gridTable = [];
@@ -55,18 +57,12 @@ export const splitedTable = (editor, table, head) => {
           originPath: path,
         };
 
-        if (!insertPosition && head[0].key === cell.key) {
+        if (!insertPosition && cell.key === startKey) {
           insertPosition = gridTable[_y][_x];
           gridTable[_y][_x].isInsertPosition = true;
         }
       }
     }
-
-    // cellWidth = Math.max(
-    //   cellWidth,
-    //   (path[tableDepth + 1] + 1)
-    //   + ((cell.data && cell.data.colspan) ? cell.data.colspan : 0),
-    // );
   };
 
   const getCell = match => {
@@ -90,11 +86,10 @@ export const splitedTable = (editor, table, head) => {
     cellMap,
     cellReMap,
     getCell,
-    // cellWidth,
   }
 }
 
-export function addSelection(editor, targetKey) {
+export function addSelection(editor, startKey, targetKey) {
   removeSelection(editor);
   addSelectionStyle();
   
@@ -106,16 +101,10 @@ export function addSelection(editor, targetKey) {
   })];
   if (!table) return;
 
-  const [targetHead] = [...Editor.nodes(editor, {
-    at: selection.anchor.path,
-    match: n => n.type === defaultOptions.typeCell,
-  })];
-  if (!targetHead) return;
+  const { gridTable, getCell } = splitedTable(editor, table);
 
-  const { gridTable, getCell } = splitedTable(editor, table, targetHead);
-
-  const [head] = getCell(n => n.cell.key === targetHead[0].key);
-  const [tail] = getCell(n => n.cell.key === targetKey);
+  let [head] = getCell(n => n.cell.key === startKey);
+  let [tail] = getCell(n => n.cell.key === targetKey);
   if (!tail || !head) return;
   
   const { path: tailPath } = tail;

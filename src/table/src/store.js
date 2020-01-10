@@ -21,8 +21,10 @@ export class ComponentStore {
 
   setAnchorCellBlock = (b) => (this.anchorCellBlock = b);
   getAnchorCellBlock = () => this.anchorCellBlock;
+
   setFocusCellBlock = (b) => (this.focusCellBlock = b);
   getFocusCellBlock = () => this.focusCellBlock;
+  
   setCellSelecting = (editor) => {
     this.isCellSelecting = true;
     // Disable resizing when cell selection started

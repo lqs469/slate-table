@@ -3,28 +3,26 @@ import { createCell } from '../create-cell';
 import { defaultOptions } from '../option';
 import { splitedTable } from '../selection';
 
-export default function insertLeft(editor) {
+export default function insertLeft(editor, startKey, endKey) {
   const { selection } = editor;
-  if (!selection) return;
+  if (!selection || !startKey || !endKey) return;
 
   const [table] = [...Editor.nodes(editor, {
     match: n => n.type === defaultOptions.typeTable,
   })];
   if (!table) return;
+  const xPosition = table[1].length + 1;
 
-  const [targetHead] = [...Editor.nodes(editor, {
-    at: editor.selection.anchor.path,
-    match: n => n.type === defaultOptions.typeCell,
-  })];
-  if (!targetHead) return;
+  const { gridTable, getCell } = splitedTable(editor, table);
+  
+  const [startCell] = getCell(n => n.cell.key === startKey);
+  const [endCell] = getCell(n => n.cell.key === endKey);
+  
+  const insertPosition = startCell.path[xPosition] < endCell.path[xPosition]
+    ? startCell
+    : endCell;
 
-  const {
-    gridTable,
-    insertPosition,
-    getCell,
-  } = splitedTable(editor, table, targetHead);
-
-  const x = insertPosition.path[insertPosition.path.length - 1];
+  const x = insertPosition.path[xPosition];
 
   const insertCells = new Map();
   let checkInsertable = true;
@@ -39,7 +37,7 @@ export default function insertLeft(editor) {
       );
       const { cell, path } = originCell;
 
-      if (path[path.length - 1] === x) {
+      if (path[xPosition] === x) {
         insertCells.set(cell.key, originCell);
       } else {
         checkInsertable = false;

@@ -3,7 +3,7 @@ import { createEditor } from "slate";
 import { Slate, Editable, withReact } from "slate-react";
 import { withHistory } from "slate-history";
 import {
-  TableElement,
+  Table,
   withTable,
   TableToolbar,
   defaultOptions,
@@ -16,7 +16,7 @@ import * as _slate from 'slate';
 import * as _react_slate from 'slate-react';
 console.log(_slate, _react_slate);
 
-export default function Table() {
+export default function CustomEditor() {
   const [value, setValue] = useState(initialValue);
 
   const renderElement = useCallback(props => <Element {...props} />, []);
@@ -26,7 +26,6 @@ export default function Table() {
     [],
   );
 
-  console.log(value[1]);
   return (
     <div style={{ width: '700px', margin: '20px auto' }}>
       <Slate
@@ -57,7 +56,7 @@ const Element = props => {
     case defaultOptions.typeRow:
     case defaultOptions.typeCell:
     case defaultOptions.typeContent:
-      return <TableElement {...props} />;
+      return <Table {...props} />;
     default:
       return <p {...attributes}>{children}</p>;
   }
