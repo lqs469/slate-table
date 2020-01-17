@@ -3,7 +3,6 @@ export default [
     type: 'paragraph',
     children: [
       { text: 'Lorem ipsum...' },
-      { text: 'Lorem ipsum...' },
     ],
   },
   {
@@ -200,5 +199,11 @@ export default [
         "data": {}
       }
     ]
-  }
+  },
+  {
+    type: 'paragraph',
+    children: [
+      { text: 'end' },
+    ],
+  },
 ]

@@ -3,7 +3,14 @@ import { createTable } from '../create-table';
 
 function insertTable(editor, columns = 3, rows = 3) {
   const table = createTable(columns, rows);
-  Transforms.insertNodes(editor, table);
+  const p = {
+    type: 'paragraph',
+    children: [
+      { text: '' },
+    ],
+  };
+  
+  Transforms.insertNodes(editor, [table, p]);
 }
 
 export default insertTable;

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Editor, Range, Point, Transforms, Text } from 'slate';
 import { useEditor } from "slate-react";
 import { defaultOptions } from './option';
 import { TableElement } from './renderers';
@@ -9,7 +10,8 @@ const TABLE_HANDLER = 'table_handler';
 const store = new ComponentStore();
 
 const withTable = editor => {
-  const { exec } = editor
+  const { exec, deleteBackward, deleteFragment } = editor;
+
   editor.exec = command => {
     if (command.type === TABLE_HANDLER) {
       commands[command.method](
@@ -18,11 +20,83 @@ const withTable = editor => {
         store.getFocusCellBlock(),
       );
     } else {
-      exec(command)
+      exec(command);
     }
   }
 
-  return editor
+  editor.deleteFragment = (...args) => {
+    const { selection } = editor;
+    const [fragment] = Editor.fragment(editor, selection);
+
+    if (fragment.type === defaultOptions.typeTable) {
+      const selectedCells = [...Editor.nodes(editor, {
+        match: n => n.selectionColor,
+      })];
+
+      selectedCells.forEach(([cell, path]) => {
+        const [content] = [...Editor.nodes(editor, {
+          at: path,
+          match: n => Text.isText(n),
+        })];
+        
+        Transforms.delete(
+          editor,
+          {
+            at: content[1],
+          }
+        );
+      });
+
+      return;
+    }
+    deleteFragment(...args);
+  }
+    
+  editor.deleteBackward = (...args) => {
+    const { selection } = editor;
+    
+    if (selection && Range.isCollapsed(selection)) {
+      const match = Editor.above(editor, {
+        match: n =>
+        n.type === defaultOptions.typeTable
+        || n.type === defaultOptions.typeRow
+        || n.type === defaultOptions.typeCell
+        || n.type === defaultOptions.typeContent
+        ,
+      });
+
+      if (match) {
+        const [block, path] = match;
+        const start = Editor.start(editor, path);
+
+        if (
+          block.type !== 'paragraph' &&
+          Point.equals(selection.anchor, start)
+        ) {
+          return;
+        }
+      } else {
+        const beforeLocation = Editor.before(editor, selection);
+        const isAfterTable = Editor.above(editor, {
+          at: beforeLocation,
+          match: n =>
+            n.type === defaultOptions.typeTable
+            || n.type === defaultOptions.typeRow
+            || n.type === defaultOptions.typeCell
+            || n.type === defaultOptions.typeContent
+          ,
+        });
+
+        if (isAfterTable) {
+          return;
+        }
+      }
+    }
+
+    deleteBackward(...args);
+  }
+
+  return editor;
 }
 
 const TableToolbar = () => {

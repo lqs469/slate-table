@@ -1,4 +1,4 @@
-import React, { memo, useState, useCallback, useEffect, forwardRef } from 'react';
+import React, { memo, useState, useCallback, useEffect } from 'react';
 import { Editor, Transforms } from "slate";
 import { useEditor } from "slate-react";
 import { removeSelection, addSelection } from './selection';
@@ -9,7 +9,7 @@ import { defaultOptions } from './option';
 
 
 // 表格组件
-const Table = forwardRef((props) => {
+const Table = props => {
   const [disableResizing, forceUpdate] = useState(false);
   const maxWidth = typeof props.maxWidth === 'undefined' ? 'auto' : props.maxWidth + 'px';
   const editor = useEditor();
@@ -105,7 +105,7 @@ const Table = forwardRef((props) => {
         }
       }
     }
-  }, [holding, setHolding]);
+  }, [holding, setHolding, props.store]);
 
   return (
     <table
@@ -143,7 +143,7 @@ const Table = forwardRef((props) => {
       {props.children}
     </table>
   );
-});
+};
 
 
 
