@@ -7,6 +7,7 @@ import removeTable from './removeTable';
 import removeColumn from './removeColumn';
 import removeRow from './removeRow';
 import mergeSelection from './mergeSelection';
+import splitCell from './splitCell';
 
 export default {
   insertTable,
@@ -18,4 +19,5 @@ export default {
   removeColumn,
   removeRow,
   mergeSelection,
+  splitCell,
 };

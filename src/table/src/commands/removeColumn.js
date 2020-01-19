@@ -1,77 +1,88 @@
-import { Editor, Transforms } from 'slate';
+import { Editor, Transforms, Path } from 'slate';
 import { defaultOptions } from '../option';
-import removeTable from './removeTable';
+import { splitedTable } from '../selection';
+import { createCell } from '../create-cell';
 
-export default function removeColumn(editor) {
-  // const table = TableLayout.create(editor, opts);
-  // if (!table) return editor;
-  // const columnIndex = typeof at === 'undefined' ? table.columnIndex : at;
+export default function removeColumn(editor, startKey, endKey) {
+  const { selection } = editor;
+  if (!selection || !startKey || !endKey) return;
 
-  // editor.withoutNormalizing(() => {
-  //   table.filterHorizontalMergedCellsBy(columnIndex).forEach(cell => {
-  //     editor.setNodeByKey(cell.key, {
-  //       type: cell.block.type,
-  //       data: { ...cell.block.data.toObject(), colspan: cell.colspan - 1 },
-  //     });
-  //   });
-
-  //   // Remove the cell from every row
-  //   if (table.width > 1) {
-  //     table.table.forEach((row, index) => {
-  //       const cell = row[columnIndex];
-  //       if (cell.colspan === 1) {
-  //         editor.removeNodeByKey(cell.key);
-  //       }
-  //       if (cell.rowBlock.nodes.size === 1 && cell.colspan === 1) {
-  //         table.getRows(index).forEach(cell => {
-  //           if (cell.rowspan > 1) {
-  //             editor.setNodeByKey(cell.key, {
-  //               type: cell.block.type,
-  //               data: { ...cell.block.data.toObject(), rowspan: cell.rowspan - 1 },
-  //             });
-  //           }
-  //         });
-  //         editor.removeNodeByKey(cell.rowBlock.key);
-  //       }
-  //     });
-  //   } else {
-  //     // If last column, clear text in cells instead
-  //     editor.removeNodeByKey(table.currentTable.key);
-  //   }
-  // });
-
-  const allPath = editor.selection.anchor.path;
-
-  const matchRows = [...Editor.nodes(editor, {
-    at: [editor.selection.anchor.path[0]],
-    match: n => n.type === defaultOptions.typeRow,
+  const [table] = [...Editor.nodes(editor, {
+    match: n => n.type === defaultOptions.typeTable,
   })];
+  if (!table) return;
+  const xPosition = table[1].length + 1;
 
-  const [[matchRow]] = [...Editor.nodes(editor, {
-    match: n => n.type === defaultOptions.typeRow,
-  })];
-
-
-  if (matchRow.children.length < 2) {
-    removeTable(editor);
-    return;
-  }
+  const { gridTable, getCell } = splitedTable(editor, table);
   
-  matchRows.forEach(([, rowPath]) => {
-    const at = allPath.map((item, index) =>
-    typeof rowPath[index] === 'number'
-    ? rowPath[index]
-    : item
+  const [startCell] = getCell(n => n.cell.key === startKey);
+  const [endCell] = getCell(n => n.cell.key === endKey);
+  
+  const [xStart, xEnd] = [
+    startCell.path[xPosition],
+    endCell.path[xPosition]
+  ].sort((a, b) => a - b);
+
+  console.log(startCell, endCell, xStart, xEnd);
+
+  const removeNodesMap = new Map();
+  gridTable.forEach(row => {
+    for (let i = xStart; i <= xEnd; i++) {
+      const { isReal, cell, path, originPath } = row[i];
+      const { key, colspan = 1, rowspan = 1 } = cell;
+
+      if (isReal) {
+        if (colspan + path[xPosition] - 1 > xEnd) {
+          const newCell = createCell({
+            rowspan,
+            colspan: colspan + path[xPosition] - 1 - xEnd
+          });
+
+          Transforms.insertNodes(editor, newCell, {
+            at: Path.next(originPath),
+          });
+        }
+
+        // Transforms.delete(editor, {
+        //   at: originPath,
+        // });
+        Transforms.setNodes(editor, {
+          colspan: xEnd - xStart,
+        }, {
+          at: table[1],
+          match: n => n.key === key,
+        });
+      } else {
+        if (colspan + path[xPosition] - 1 > xStart) {
+          const originCell = getCell(n => n.isReal && n.cell.key === key);
+          
+          Transforms.setNodes(editor, {
+            colspan: xStart - originCell.path[xPosition],
+          }, {
+            at: table[1],
+            match: n => n.key === key,
+          });
+        }
+
+        const newCell = createCell({
+          rowspan,
+          colspan: colspan + path[xPosition] - 1 - xEnd
+        });
+
+        Transforms.insertNodes(editor, newCell, {
+          at: Path.next(originPath),
+        });
+      }
+    }
+  });
+
+  removeNodesMap.forEach(node => {
+    console.log(node)
+    Transforms.delete(
+      editor,
+      {
+        at: node.originPath,
+      }
     );
-    
-    const [[matchCell, path]] = Editor.nodes(editor, {
-      at,
-      match: n => n.type === defaultOptions.typeCell,
-    });
-    
-    Transforms.removeNodes(editor, {
-      at: path,
-      match: n => n.key === matchCell.key,
-    });
   });
 }
