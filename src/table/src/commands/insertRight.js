@@ -1,6 +1,5 @@
 import { Editor, Transforms, Path } from 'slate';
-import { createCell } from '../create-cell';
-import { defaultOptions } from '../option';
+import { createCell } from '../creator';
 import { splitedTable } from '../selection';
 
 export default function insertRight(editor, startKey, endKey) {

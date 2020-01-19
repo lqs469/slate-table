@@ -1,7 +1,6 @@
 import { Editor, Transforms } from 'slate';
-import { defaultOptions } from '../option';
 import { splitedTable } from '../selection';
-import { createCell } from '../create-cell';
+import { createCell } from '../creator';
 
 export default function removeColumn(editor, startKey, endKey) {
   const { table } = this;

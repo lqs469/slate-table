@@ -1,7 +1,7 @@
 import { Editor, Transforms } from 'slate';
 import { defaultOptions } from '../option';
 import { splitedTable } from '../selection';
-import { createRow } from '../create-row';
+import { createRow } from '../creator';
 
 export default function insertAbove(editor, startKey, endKey) {
   const { table } = this;

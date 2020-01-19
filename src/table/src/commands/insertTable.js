@@ -1,5 +1,5 @@
 import { Transforms } from 'slate';
-import { createTable } from '../create-table';
+import { createTable } from '../creator';
 
 function insertTable(editor, columns = 3, rows = 3) {
   const table = createTable(columns, rows);
