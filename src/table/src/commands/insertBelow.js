@@ -4,13 +4,10 @@ import { splitedTable } from '../selection';
 import { createRow } from '../create-row';
 
 export default function insertBelow(editor, startKey, endKey) {
+  const { table } = this;
   const { selection } = editor;
-  if (!selection || !startKey || !endKey) return;
+  if (!selection || !startKey || !endKey || !table) return;
 
-  const [table] = [...Editor.nodes(editor, {
-    match: n => n.type === defaultOptions.typeTable,
-  })];
-  if (!table) return;
   const yPosition = table[1].length;
 
   const { gridTable, getCell } = splitedTable(editor, table);

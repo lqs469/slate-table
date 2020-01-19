@@ -1,11 +1,16 @@
-import { Transforms } from 'slate';
-// import { TableLayout } from '../layout';
+import { Editor, Transforms } from 'slate';
 import { defaultOptions } from '../option';
 
 export default function removeTable(editor) {
-  // editor.deselect();
-
+  let { table } = this;
+  if (!table) {
+    [table] = [...Editor.nodes(editor, {
+      match: n => n.type === defaultOptions.typeTable,
+    })];
+  }
+  
   Transforms.removeNodes(editor, {
+    at: table[1],
     match: n => n.type === defaultOptions.typeTable,
   });
 }

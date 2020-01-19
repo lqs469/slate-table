@@ -5,6 +5,7 @@ import { defaultOptions } from './option';
 import { TableElement } from './renderers';
 import { ComponentStore } from './store';
 import commands from './commands';
+import removeTable from './commands/removeTable';
 
 const TABLE_HANDLER = 'table_handler';
 const store = new ComponentStore();
@@ -14,11 +15,28 @@ const withTable = editor => {
 
   editor.exec = command => {
     if (command.type === TABLE_HANDLER) {
-      commands[command.method](
+      const [table] = [...Editor.nodes(editor, {
+        match: n => n.type === defaultOptions.typeTable,
+      })];
+
+      commands[command.method].call({
+        table,
+      },
         editor,
         store.getAnchorCellBlock(),
         store.getFocusCellBlock(),
       );
+
+      const tables = [...Editor.nodes(editor, {
+        at: [],
+        match: n => n.type === defaultOptions.typeTable,
+      })];
+
+      tables.forEach(t => {
+        if (!checkTableIsExist(editor, t)) {
+          removeTable.call({ table }, editor);
+        }
+      });
     } else {
       exec(command);
     }
@@ -129,6 +147,15 @@ const TableToolbar = () => {
 }
 
 const Table = props => <TableElement {...props} store={store} />
+
+function checkTableIsExist(editor, table) {
+  const cells = [...Editor.nodes(editor, {
+    at: table[1],
+    match: n => n.type === defaultOptions.typeCell,
+  })];
+
+  return !!cells.length;
+}
 
 export {
   withTable,

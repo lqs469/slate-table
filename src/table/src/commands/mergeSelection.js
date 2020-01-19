@@ -3,9 +3,7 @@ import { defaultOptions } from '../option';
 import { splitedTable } from '../selection';
 
 export default function mergeSelection(editor, startKey) {
-  const [table] = [...Editor.nodes(editor, {
-    match: n => n.type === defaultOptions.typeTable,
-  })];
+  const { table } = this;
   if (!table) return;
 
   const { gridTable } = splitedTable(editor, table, startKey);

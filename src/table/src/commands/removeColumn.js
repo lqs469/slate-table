@@ -1,88 +1,98 @@
-import { Editor, Transforms, Path } from 'slate';
+import { Editor, Transforms } from 'slate';
 import { defaultOptions } from '../option';
 import { splitedTable } from '../selection';
-import { createCell } from '../create-cell';
+import splitCell from './splitCell';
 
 export default function removeColumn(editor, startKey, endKey) {
+  const { table } = this;
   const { selection } = editor;
-  if (!selection || !startKey || !endKey) return;
-
-  const [table] = [...Editor.nodes(editor, {
-    match: n => n.type === defaultOptions.typeTable,
-  })];
-  if (!table) return;
+  if (!selection || !startKey || !endKey || !table) return;
+  
+  const { gridTable } = splitedTable(editor, table);
   const xPosition = table[1].length + 1;
 
-  const { gridTable, getCell } = splitedTable(editor, table);
-  
-  const [startCell] = getCell(n => n.cell.key === startKey);
-  const [endCell] = getCell(n => n.cell.key === endKey);
-  
-  const [xStart, xEnd] = [
-    startCell.path[xPosition],
-    endCell.path[xPosition]
-  ].sort((a, b) => a - b);
-
-  console.log(startCell, endCell, xStart, xEnd);
-
-  const removeNodesMap = new Map();
+  let xStart = gridTable[0].length;
+  let xEnd = 0;
   gridTable.forEach(row => {
-    for (let i = xStart; i <= xEnd; i++) {
-      const { isReal, cell, path, originPath } = row[i];
-      const { key, colspan = 1, rowspan = 1 } = cell;
+    row.forEach(col => {
+      if (col.cell.key === startKey) {
+        xStart = Math.min(xStart, col.path[xPosition]);
+      }
 
-      if (isReal) {
-        if (colspan + path[xPosition] - 1 > xEnd) {
-          const newCell = createCell({
-            rowspan,
-            colspan: colspan + path[xPosition] - 1 - xEnd
-          });
+      if (col.cell.key === endKey) {
+        xEnd = Math.max(xEnd, col.path[xPosition]);
+      }
+    });
+  });
 
-          Transforms.insertNodes(editor, newCell, {
-            at: Path.next(originPath),
-          });
-        }
+  const splitStartKey = gridTable[0][xStart].cell.key;
+  const splitEndKey = gridTable[gridTable.length - 1][xEnd].cell.key;
 
-        // Transforms.delete(editor, {
-        //   at: originPath,
-        // });
-        Transforms.setNodes(editor, {
-          colspan: xEnd - xStart,
-        }, {
-          at: table[1],
-          match: n => n.key === key,
-        });
-      } else {
-        if (colspan + path[xPosition] - 1 > xStart) {
-          const originCell = getCell(n => n.isReal && n.cell.key === key);
-          
-          Transforms.setNodes(editor, {
-            colspan: xStart - originCell.path[xPosition],
-          }, {
-            at: table[1],
-            match: n => n.key === key,
-          });
-        }
+  splitCell.call({ table }, editor, splitStartKey, splitEndKey);
 
-        const newCell = createCell({
-          rowspan,
-          colspan: colspan + path[xPosition] - 1 - xEnd
-        });
+  const { gridTable: splitedGridTable } = splitedTable(editor, table);
+  
+  const removedCells = splitedGridTable.reduce((p, c) => {
+    const cells = c.slice(xStart, xEnd + 1);
+    return [...p, ...cells];
+  }, []);
 
-        Transforms.insertNodes(editor, newCell, {
-          at: Path.next(originPath),
-        });
+  removedCells.forEach(cell => {
+    Transforms.removeNodes(editor, {
+      at: table[1],
+      match: n => n.key === cell.cell.key,
+    });
+  });
+
+  const { gridTable: removedGridTable = [] } = splitedTable(editor, table);
+
+  Transforms.removeNodes(editor, {
+    at: table[1],
+    match: n => {
+      if (n.type !== defaultOptions.typeRow) {
+        return false;
+      }
+      
+      if (!n.children) {
+        return true;
+      }
+
+      const found = n.children.findIndex(col => col.type === defaultOptions.typeCell);
+      if (found === -1) {
+        checkSpan();
+        return true;
       }
     }
   });
 
-  removeNodesMap.forEach(node => {
-    console.log(node)
-    Transforms.delete(
-      editor,
-      {
-        at: node.originPath,
+  function checkSpan() {
+    removedGridTable.forEach(row => {
+      const isFakeRow = row.reduce((p, c) => p && !c.isReal, true);
+      if (isFakeRow) {
+        const originCell = new Map();
+        row.forEach(col => {
+          const cell = col.targetCell || col.cell;
+          originCell.set(cell.key, cell);
+        });
+        
+        originCell.forEach(cell => {
+          const [node] = [...Editor.nodes(editor, {
+            at: table[1],
+            match: n => n.key === cell.key,
+          })];
+
+          if (node && node[0]) {
+            Transforms.setNodes(editor, {
+              rowspan: node[0].rowspan
+                ? Math.max(node[0].rowspan - 1, 1)
+                : 1,
+            }, {
+              at: table[1],
+              match: n => n.key === node[0].key,
+            });
+          }
+        });
       }
-    );
-  });
+    });
+  }
 }

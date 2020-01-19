@@ -4,13 +4,10 @@ import { defaultOptions } from '../option';
 import { splitedTable } from '../selection';
 
 export default function insertRight(editor, startKey, endKey) {
+  const { table } = this;
   const { selection } = editor;
-  if (!selection || !startKey || !endKey) return;
+  if (!selection || !startKey || !endKey || !table) return;
 
-  const [table] = [...Editor.nodes(editor, {
-    match: n => n.type === defaultOptions.typeTable,
-  })];
-  if (!table) return;
   const xPosition = table[1].length + 1;
 
   const { gridTable, getCell } = splitedTable(editor, table);
