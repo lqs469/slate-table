@@ -199,6 +199,73 @@ export default [
           // }
         ],
         "data": {}
+      },
+      {
+        "type": "editable_table_row",
+        key: 'row_3',
+        "children": [
+          {
+            "type": "editable_table_cell",
+            key: 'cell_9',
+            "children": [
+              {
+                "type": "editable_table_content",
+                "children": [
+                  {
+                    type: 'paragraph',
+                    children: [
+                      { text: 'a9' },
+                    ],
+                  },
+                ]
+              }
+            ],
+            "data": {
+              "width": 15
+            }
+          },
+          {
+            "type": "editable_table_cell",
+            key: 'cell_10',
+            "children": [
+              {
+                "type": "editable_table_content",
+                "children": [
+                  {
+                    type: 'paragraph',
+                    children: [
+                      { text: 'a10' },
+                    ],
+                  },
+                ]
+              }
+            ],
+            "data": {
+              "width": 200
+            }
+          },
+          {
+            "type": "editable_table_cell",
+            key: 'cell_11',
+            "children": [
+              {
+                "type": "editable_table_content",
+                "children": [
+                  {
+                    type: 'paragraph',
+                    children: [
+                      { text: 'a11' },
+                    ],
+                  },
+                ]
+              }
+            ],
+            "data": {
+              "width": 200
+            }
+          }
+        ],
+        "data": {}
       }
     ]
   },

@@ -15,11 +15,8 @@ export default function removeColumn(editor, startKey, endKey) {
   let xEnd = 0;
   gridTable.forEach(row => {
     row.forEach(col => {
-      if (col.cell.key === startKey) {
+      if (col.cell.key === startKey || col.cell.key === endKey) {
         xStart = Math.min(xStart, col.path[xPosition]);
-      }
-
-      if (col.cell.key === endKey) {
         xEnd = Math.max(xEnd, col.path[xPosition]);
       }
     });
@@ -45,7 +42,7 @@ export default function removeColumn(editor, startKey, endKey) {
   });
 
   const { gridTable: removedGridTable = [] } = splitedTable(editor, table);
-
+  
   Transforms.removeNodes(editor, {
     at: table[1],
     match: n => {

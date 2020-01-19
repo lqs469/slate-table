@@ -10,7 +10,7 @@ export default function removeColumn(editor, startKey, endKey) {
   const yPosition = table[1].length;
   const xPosition = table[1].length + 1;
 
-  const { getCell } = splitedTable(editor, table);
+  const { gridTable, getCell } = splitedTable(editor, table);
 
   const [startCell] = getCell(n => n.cell.key === startKey && n.isReal);
   const [endCell] = getCell(n => n.cell.key === endKey && n.isReal);
@@ -23,7 +23,8 @@ export default function removeColumn(editor, startKey, endKey) {
     startCell.path[xPosition],
     endCell.path[xPosition],
   ].sort((a, b) => a - b);
-  
+
+  const sourceCells = new Map();
   const selectedCols = getCell(n => {
     if (n.cell.selectionColor) {
       return true;
@@ -31,12 +32,26 @@ export default function removeColumn(editor, startKey, endKey) {
 
     const [y, x] = n.path.slice(table[1].length, table[1].length + 2);
     if (y >= yStart && y <= yEnd && x >= xStart && x <= xEnd) {
+      if (!n.isReal) {
+        const [sourceCell] = getCell(s =>
+          s.isReal && s.cell.key === n.cell.key
+        );
+        sourceCells.set(n.cell.key, sourceCell);
+      }
       return true;
     }
 
     return false;
   });
-  
+
+  sourceCells.forEach(c => {
+    const [y, x] = c.path.slice(table[1].length, table[1].length + 2);
+
+    if (y < yStart || y > yEnd || x < xStart || x > xEnd) {
+      selectedCols.push(c);
+    }
+  });
+
   selectedCols.forEach(col => {
     const { cell, isReal, originPath } = col;
     const { rowspan = 1, colspan = 1, children } = cell;
