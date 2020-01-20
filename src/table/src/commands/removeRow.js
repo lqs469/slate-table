@@ -1,82 +1,60 @@
-import { Editor, Transforms } from 'slate';
+import { Transforms } from 'slate';
 import { defaultOptions } from '../option';
-import removeTable from './removeTable';
+import { splitedTable } from '../selection';
+import splitCell from './splitCell';
 
-export default function removeRow(editor, at) {
-  // const table = TableLayout.create(editor, opts);
-  // if (!table) return editor;
-  // const below = table.findBelow(table.cell.key);
-  // const { rowIndex, row } = table;
-  // const index = typeof at === 'undefined' ? table.rowIndex : at;
+export default function removeRow(editor, startKey, endKey) {
+  const { table } = this;
+  const { selection } = editor;
+  if (!selection || !startKey || !endKey || !table) return;
   
-  // editor.withoutNormalizing(() => {
-  //   if (table.height === 1 || !below) {
-  //     table.getRows(index).forEach(cell => {
-  //       if (cell.rowspan === 1) return;
-  //       editor.setNodeByKey(cell.key, {
-  //         type: cell.block.type,
-  //         data: { ...cell.block.data.toObject(), rowspan: cell.rowspan - 1 },
-  //       });
-  //     });
-  //     editor.removeNodeByKey(row.key);
-  //     if (table.height === 1) {
-  //       editor.removeNodeByKey(table.currentTable.key);
-  //     }
-  //   } else {
-  //     const newNodes = below.rowBlock.nodes.toArray().map((b) => {
-  //       if (!Block.isBlock(b)) return null;
-  //       return b.toJSON();
-  //     });
+  const { gridTable } = splitedTable(editor, table);
+  const yPosition = table[1].length;
 
-  //     const inserted = {};
-  //     // const inserted: { [key: string]: boolean } = {};
+  let yStart = gridTable.length;
+  let yEnd = 0;
+  gridTable.forEach(row => {
+    row.forEach(col => {
+      if (col.cell.key === startKey || col.cell.key === endKey) {
+        yStart = Math.min(yStart, col.path[yPosition]);
+        yEnd = Math.max(yEnd, col.path[yPosition]);
+      }
+    });
+  });
 
-  //     table.getRows(index).forEach(cell => {
-  //       if (cell.rowspan === 1) return;
-  //       if (cell.isTopOfMergedCell) {
-  //         const newBlock = Block.create({
-  //           type: cell.block.type,
-  //           data: { ...cell.block.data.toObject(), rowspan: cell.rowspan - 1 },
-  //           nodes: cell.block.nodes,
-  //         });
-  //         if (inserted[cell.key]) return;
-  //         newNodes.splice(cell.nodeIndex, 0, newBlock.toJSON());
-  //         inserted[cell.key] = true;
-  //       } else {
-  //         editor.setNodeByKey(cell.key, {
-  //           type: cell.block.type,
-  //           data: { ...cell.block.data.toObject(), rowspan: cell.rowspan - 1 },
-  //         });
-  //       }
-  //     });
-  //     const newBlock = Block.fromJSON({
-  //       ...below.rowBlock.toJSON(),
-  //       nodes: newNodes,
-  //     });
-  //     editor.removeNodeByKey(row.key);
-  //     editor.replaceNodeByKey(below.rowBlock.key, newBlock);
-  //   }
+  const splitStartKey = gridTable[yStart][0].cell.key;
+  const splitEndKey = gridTable[yEnd][gridTable[0].length - 1].cell.key;
 
-  //   const newRow = TableLayout.findRowBlock(editor, rowIndex, opts);
-  //   if (!newRow) {
-  //     // TODO: find table when unfocused from table.
-  //     return;
-  //   }
-  //   editor.moveTo(newRow.key);
-  // });
+  splitCell.call({ table }, editor, splitStartKey, splitEndKey);
 
-  const matchRow = [...Editor.nodes(editor, {
-    at: [editor.selection.anchor.path[0]],
-    match: n => n.type === defaultOptions.typeRow,
-  })];
+  const { gridTable: splitedGridTable } = splitedTable(editor, table);
+  
+  const removedCells = splitedGridTable
+    .slice(yStart, yEnd + 1)
+    .reduce((p, c) => [...p, ...c], []);
 
-
-  if (matchRow.length < 2) {
-    removeTable(editor);
-    return;
-  }
+  removedCells.forEach(cell => {
+    Transforms.removeNodes(editor, {
+      at: table[1],
+      match: n => n.key === cell.cell.key,
+    });
+  });
 
   Transforms.removeNodes(editor, {
-    match: n => n.type === defaultOptions.typeRow,
+    at: table[1],
+    match: n => {
+      if (n.type !== defaultOptions.typeRow) {
+        return false;
+      }
+      
+      if (!n.children) {
+        return true;
+      }
+
+      const found = n.children.findIndex(col => col.type === defaultOptions.typeCell);
+      if (found === -1) {
+        return true;
+      }
+    }
   });
 }

@@ -1,4 +1,4 @@
-import { Editor, Transforms } from 'slate';
+import { Transforms } from 'slate';
 import { splitedTable } from '../selection';
 import { createCell } from '../creator';
 
@@ -10,7 +10,7 @@ export default function removeColumn(editor, startKey, endKey) {
   const yPosition = table[1].length;
   const xPosition = table[1].length + 1;
 
-  const { gridTable, getCell } = splitedTable(editor, table);
+  const { getCell } = splitedTable(editor, table);
 
   const [startCell] = getCell(n => n.cell.key === startKey && n.isReal);
   const [endCell] = getCell(n => n.cell.key === endKey && n.isReal);
