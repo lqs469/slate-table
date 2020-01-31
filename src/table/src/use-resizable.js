@@ -20,12 +20,12 @@ export const useResizableTable = (props) => {
     );
   };
 
-  React.useEffect(() => {
-    if (!props.disableResizing) return;
-    document.querySelectorAll(handlerSelector).forEach(el => {
-      el.parentNode && el.parentNode.removeChild(el);
-    });
-  }, [props.disableResizing]);
+  // React.useEffect(() => {
+  //   if (!props.disableResizing) return;
+  //   document.querySelectorAll(handlerSelector).forEach(el => {
+  //     el.parentNode && el.parentNode.removeChild(el);
+  //   });
+  // }, [props.disableResizing]);
 
   React.useEffect(() => {
     if (!ref.current) return;
@@ -60,8 +60,9 @@ export const useResizableTable = (props) => {
       if (!firstRow) return;
 
       Array.from(firstRow.children).forEach(el => {
-        (el).style.position = 'relative';
+        el.style.position = 'relative';
         const range = getRangeXOf(el);
+        
         if (!range) return;
         getBoundaries(table).forEach(boundary => {
           if (boundary > range.start && boundary <= range.end) {
@@ -75,7 +76,7 @@ export const useResizableTable = (props) => {
               e.preventDefault();
               if (!e.target || !(e instanceof MouseEvent)) return;
               removeHandles(table, e.target);
-              if (!!props.disableResizing) return;
+              // if (!!props.disableResizing) return;
               isResizing = true;
               rows = createRowData(table);
               pageX = e.pageX;
@@ -87,14 +88,13 @@ export const useResizableTable = (props) => {
             const onMouseMove = (e) => {
               if (!isResizing) return;
               let diffX = e.pageX - pageX;
-              resizedValues = updateCellWidths(rows, boundary, diffX, props.minimumCellWidth);
-              props.onResize && props.onResize(e, resizedValues);
+              resizedValues = updateCellWidths(table, rows, boundary, diffX, props.minimumCellWidth);
             };
 
             const onMouseUp = (e) => {
               isResizing = false;
               const diffX = e.pageX - pageX;
-              resizedValues = updateCellWidths(rows, boundary, diffX, props.minimumCellWidth);
+              resizedValues = updateCellWidths(table, rows, boundary, diffX, props.minimumCellWidth);
               props.onResizeStop && props.onResizeStop(e, resizedValues);
               pageX = 0;
               removeHandles(table, e.relatedTarget);
@@ -104,7 +104,6 @@ export const useResizableTable = (props) => {
 
             const onMouseOut = (e) => {
               removeHandles(table, e.relatedTarget);
-              // parent.removeEventListener('mouseout', onMouseOut);
               document.removeEventListener('mouseout', onMouseOut);
               document.removeEventListener('mouseleave', onMouseLeave);
             };
@@ -112,18 +111,16 @@ export const useResizableTable = (props) => {
             const onMouseLeave = (e) => {
               isResizing = false;
               removeHandles(table, e.relatedTarget);
-              // parent.removeEventListener('mouseout', onMouseOut);
               document.removeEventListener('mouseout', onMouseOut);
               document.removeEventListener('mouseleave', onMouseLeave);
             };
 
-            const onHandleMouseOver = (e) => {
-              props.onHandleHover && props.onHandleHover();
-            };
+            // const onHandleMouseOver = (e) => {
+            //   props.onHandleHover && props.onHandleHover();
+            // };
 
             div.addEventListener('mousedown', onMouseDown);
-            div.addEventListener('mouseover', onHandleMouseOver);
-            // parent.addEventListener('mouseout', onMouseOut);
+            // div.addEventListener('mouseover', onHandleMouseOver);
             document.addEventListener('mouseout', onMouseOut);
             document.addEventListener('mouseleave', onMouseLeave);
           }
@@ -142,21 +139,29 @@ export const useResizableTable = (props) => {
     table.addEventListener('mouseover', onTableMouseOver);
     table.addEventListener('mouseout', onTableMouseOut);
 
-    if (!!props.disableResizing) {
-      table.removeEventListener('mouseover', onTableMouseOver);
-      table.removeEventListener('mouseout', onTableMouseOut);
-    }
+    // if (!!props.disableResizing) {
+    //   table.removeEventListener('mouseover', onTableMouseOver);
+    //   table.removeEventListener('mouseout', onTableMouseOut);
+    // }
 
     return () => {
       table.removeEventListener('mouseover', onTableMouseOver);
       table.removeEventListener('mouseout', onTableMouseOut);
     };
-  }, [props, props.disableResizing]);
+  }, [props]);
 
   return { ref, update };
 };
 
-function updateCellWidths(rows, boundary, diffX, minimumWidth) {
+/**
+ * 
+ * @param {Object} table table ref.
+ * @param {Array} rows DOM structure with startX, width, colspan and ref.
+ * @param {Number} boundary started position.
+ * @param {Number} diffX changed distance.
+ * @param {Number} minimumWidth min-width.
+ */
+function updateCellWidths(table, rows, boundary, diffX, minimumWidth) {
   // Find target cells
   let targets = [];
   rows.forEach((row, rowIndex) => {
@@ -170,7 +175,7 @@ function updateCellWidths(rows, boundary, diffX, minimumWidth) {
 
   let adjust = 0;
   // saturated or not?
-  const saturated = targets.reduce((acc, target) => {
+  let saturated = targets.reduce((acc, target) => {
     const p = rows[target.rowIndex].children[target.colIndex];
     if (!p) return acc;
     if (acc) return acc;
@@ -182,14 +187,20 @@ function updateCellWidths(rows, boundary, diffX, minimumWidth) {
     return p.width + diffX <= minimumWidth;
   }, false);
 
-  const { value } = (rows || []).reduce(
-    (acc, row, rowIndex) => {
+  const container = table.closest('div');
+  if (table.offsetWidth >= container.offsetWidth) {
+    container.style.width = `${table.offsetWidth + 1}px`;
+  }
+
+  const { value } = (rows || []).reduce((acc, row, rowIndex) => {
       let hasCurrent = false;
       let hasNext = false;
+
       row.children.forEach(cell => {
         if (!cell.ref.dataset || !cell.ref.dataset.key) return acc;
         // If saturated disable resizing
         if (saturated) return;
+
         // If col merged and move inner slider, keep width.
         if (cell.colspan >= 2 && boundary < cell.x + cell.width && boundary > cell.x) {
           acc.value[cell.ref.dataset.key] = cell.width;
@@ -197,6 +208,7 @@ function updateCellWidths(rows, boundary, diffX, minimumWidth) {
           return acc;
         }
 
+        // The cell before the slider.
         if (cell.x < boundary && cell.x + cell.width >= boundary) {
           if (!hasCurrent) {
             hasCurrent = true;
@@ -205,19 +217,34 @@ function updateCellWidths(rows, boundary, diffX, minimumWidth) {
             return acc;
           }
         }
+
         if (hasCurrent && !hasNext) {
           hasNext = true;
           cell.ref.style.width = `${Math.max(cell.width - diffX - adjust, minimumWidth)}px`;
           acc.value[cell.ref.dataset.key] = cell.ref.offsetWidth;
           return acc;
         }
-        acc.value[cell.ref.dataset.key] = cell.ref.offsetWidth;
+
+        cell.ref.style.width = `${cell.width}px`;
+        acc.value[cell.ref.dataset.key] = cell.width;
         return acc;
       });
+
       return acc;
     },
     { value: {} },
   );
+
+  
+  let tableWidth = 0;
+  rows.forEach(row => {
+    let rowWidth = 0;
+    row.children.forEach(cell => {
+      rowWidth += cell.ref.width;
+    });
+    tableWidth = Math.max(tableWidth, rowWidth);
+  })
+
   return value;
 }
 

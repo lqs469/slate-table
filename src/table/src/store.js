@@ -5,19 +5,19 @@ export class ComponentStore {
   resizeDisableEmitterMap = new Map();
   isCellSelecting = false;
 
-  subscribeDisableResizing = (editor, f) => {
-    const emitters = this.resizeDisableEmitterMap.get(editor) || [];
-    this.resizeDisableEmitterMap.set(editor, [...emitters, f]);
-    f(this.resizeDisableMap.get(editor) || false);
-  };
+  // subscribeDisableResizing = (editor, f) => {
+  //   const emitters = this.resizeDisableEmitterMap.get(editor) || [];
+  //   this.resizeDisableEmitterMap.set(editor, [...emitters, f]);
+  //   f(this.resizeDisableMap.get(editor) || false);
+  // };
 
-  setDisableResizing = (editor, v) => {
-    this.resizeDisableMap.set(editor, v);
-    const emitters = this.resizeDisableEmitterMap.get(editor) || [];
-    emitters.forEach(e => {
-      e(v);
-    });
-  };
+  // setDisableResizing = (editor, v) => {
+  //   this.resizeDisableMap.set(editor, v);
+  //   const emitters = this.resizeDisableEmitterMap.get(editor) || [];
+  //   emitters.forEach(e => {
+  //     e(v);
+  //   });
+  // };
 
   setAnchorCellBlock = (b) => (this.anchorCellBlock = b);
   getAnchorCellBlock = () => this.anchorCellBlock;

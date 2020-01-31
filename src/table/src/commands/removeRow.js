@@ -1,5 +1,5 @@
 import { Transforms } from 'slate';
-import { defaultOptions } from '../option';
+import { defaultOptions } from '../options';
 import { splitedTable } from '../selection';
 import splitCell from './splitCell';
 

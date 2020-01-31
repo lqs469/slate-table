@@ -1,6 +1,6 @@
 // import { HistoryEditor } from 'slate-history';
 import { Transforms, Editor } from "slate";
-import { defaultOptions } from "./option";
+import { defaultOptions } from "./options";
 
 const insertStyleId = '__slate__table__id';
 

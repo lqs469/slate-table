@@ -1,12 +1,12 @@
-import React, { useCallback, useMemo, useState } from "react";
-import { createEditor } from "slate";
-import { Slate, Editable, withReact } from "slate-react";
-import { withHistory } from "slate-history";
+import React, { useCallback, useMemo, useState } from 'react';
+import { createEditor } from 'slate';
+import { Slate, Editable, withReact } from 'slate-react';
+import { withHistory } from 'slate-history';
 import {
   Table,
   withTable,
   TableToolbar,
-  defaultOptions,
+  defaultOptions
 } from './src/slate-table';
 
 import initialValue from './initialValue';
@@ -23,17 +23,15 @@ export default function CustomEditor() {
   const renderLeaf = useCallback(props => <Leaf {...props} />, []);
   const editor = useMemo(
     () => withTable(withHistory(withReact(createEditor()))),
-    [],
+    []
   );
-
-  console.log(value);
 
   return (
     <div style={{ width: '700px', margin: '20px auto' }}>
       <Slate
         editor={editor}
         value={value}
-        onChange={(value) => {
+        onChange={value => {
           setValue(value);
         }}
       >
@@ -48,10 +46,10 @@ export default function CustomEditor() {
       </Slate>
     </div>
   );
-};
+}
 
 const Element = props => {
-  const { attributes, children, element } = props
+  const { attributes, children, element } = props;
 
   switch (element.type) {
     case defaultOptions.typeTable:
@@ -66,7 +64,6 @@ const Element = props => {
 
 const Leaf = ({
   attributes,
-  children,
+  children
   // leaf,
-}) => (<span {...attributes}>{children}</span>);
-
+}) => <span {...attributes}>{children}</span>;

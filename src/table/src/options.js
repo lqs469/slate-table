@@ -4,12 +4,11 @@ export const defaultOptions = {
   typeTable: 'editable_table',
   typeContent: 'editable_table_content',
   selectionColor: '#B9D3FC',
-  minimumCellWidth: 32,
-  rowStyle: {},
+  minimumCellWidth: 100,
   tableStyle: {
     borderSpacing: 0,
     Layout: 'fixed',
     wordBreak: 'break-word',
   },
-  defaultColumnWidth: 15,
+  defaultColumnWidth: 100,
 };

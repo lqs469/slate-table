@@ -1,5 +1,5 @@
 import { Editor, Transforms } from 'slate';
-import { defaultOptions } from '../option';
+import { defaultOptions } from '../options';
 import { splitedTable } from '../selection';
 import splitCell from './splitCell';
 
@@ -7,7 +7,7 @@ export default function removeColumn(editor, startKey, endKey) {
   const { table } = this;
   const { selection } = editor;
   if (!selection || !startKey || !endKey || !table) return;
-  
+
   const { gridTable } = splitedTable(editor, table);
   const xPosition = table[1].length + 1;
 
@@ -28,7 +28,7 @@ export default function removeColumn(editor, startKey, endKey) {
   splitCell.call({ table }, editor, splitStartKey, splitEndKey);
 
   const { gridTable: splitedGridTable } = splitedTable(editor, table);
-  
+
   const removedCells = splitedGridTable.reduce((p, c) => {
     const cells = c.slice(xStart, xEnd + 1);
     return [...p, ...cells];
@@ -37,24 +37,26 @@ export default function removeColumn(editor, startKey, endKey) {
   removedCells.forEach(cell => {
     Transforms.removeNodes(editor, {
       at: table[1],
-      match: n => n.key === cell.cell.key,
+      match: n => n.key === cell.cell.key
     });
   });
 
   const { gridTable: removedGridTable = [] } = splitedTable(editor, table);
-  
+
   Transforms.removeNodes(editor, {
     at: table[1],
     match: n => {
       if (n.type !== defaultOptions.typeRow) {
         return false;
       }
-      
+
       if (!n.children) {
         return true;
       }
 
-      const found = n.children.findIndex(col => col.type === defaultOptions.typeCell);
+      const found = n.children.findIndex(
+        col => col.type === defaultOptions.typeCell
+      );
       if (found === -1) {
         checkSpan();
         return true;
@@ -71,22 +73,26 @@ export default function removeColumn(editor, startKey, endKey) {
           const cell = col.targetCell || col.cell;
           originCell.set(cell.key, cell);
         });
-        
+
         originCell.forEach(cell => {
-          const [node] = [...Editor.nodes(editor, {
-            at: table[1],
-            match: n => n.key === cell.key,
-          })];
+          const [node] = [
+            ...Editor.nodes(editor, {
+              at: table[1],
+              match: n => n.key === cell.key
+            })
+          ];
 
           if (node && node[0]) {
-            Transforms.setNodes(editor, {
-              rowspan: node[0].rowspan
-                ? Math.max(node[0].rowspan - 1, 1)
-                : 1,
-            }, {
-              at: table[1],
-              match: n => n.key === node[0].key,
-            });
+            Transforms.setNodes(
+              editor,
+              {
+                rowspan: node[0].rowspan ? Math.max(node[0].rowspan - 1, 1) : 1
+              },
+              {
+                at: table[1],
+                match: n => n.key === node[0].key
+              }
+            );
           }
         });
       }

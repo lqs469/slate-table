@@ -1,5 +1,5 @@
 import { Editor, Transforms, Path } from 'slate';
-import { defaultOptions } from '../option';
+import { defaultOptions } from '../options';
 import { splitedTable } from '../selection';
 
 export default function mergeSelection(editor, startKey) {

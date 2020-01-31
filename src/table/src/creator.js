@@ -1,5 +1,5 @@
 import { Range } from 'immutable';
-import { defaultOptions } from './option';
+import { defaultOptions } from './options';
 import uuidv4 from 'uuid/v4';
 
 export function createTable(columns, rows) {
@@ -10,7 +10,7 @@ export function createTable(columns, rows) {
   return {
     type: defaultOptions.typeTable,
     children: rowNodes,
-    data: {},
+    data: {}
   };
 }
 
@@ -23,7 +23,7 @@ export function createRow(columns) {
     type: defaultOptions.typeRow,
     key: `row_${uuidv4()}`,
     data: {},
-    children: cellNodes,
+    children: cellNodes
   };
 }
 
@@ -36,14 +36,14 @@ export function createCell({ elements, data = {}, colspan, rowspan } = {}) {
     children: [
       {
         type: typeContent,
-        children: elements || [{ text: '' }],
-      },
+        children: elements || [{ type: 'paragraph', children: [{ text: '' }] }]
+      }
     ],
     data: {
       width: defaultColumnWidth,
-      ...data,
+      ...data
     },
     colspan,
-    rowspan,
+    rowspan
   };
 }

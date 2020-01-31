@@ -1,7 +1,7 @@
 import React from 'react';
 import { Editor, Range, Point, Transforms, Text } from 'slate';
-import { useEditor } from "slate-react";
-import { defaultOptions } from './option';
+import { useEditor } from 'slate-react';
+import { defaultOptions } from './options';
 import { TableElement } from './renderers';
 import { ComponentStore } from './store';
 import commands from './commands';
@@ -15,22 +15,27 @@ const withTable = editor => {
 
   editor.exec = command => {
     if (command.type === TABLE_HANDLER) {
-      const [table] = [...Editor.nodes(editor, {
-        match: n => n.type === defaultOptions.typeTable,
-      })];
+      const [table] = [
+        ...Editor.nodes(editor, {
+          match: n => n.type === defaultOptions.typeTable
+        })
+      ];
 
-      commands[command.method].call({
-        table,
-      },
+      commands[command.method].call(
+        {
+          table
+        },
         editor,
         store.getAnchorCellBlock(),
-        store.getFocusCellBlock(),
+        store.getFocusCellBlock()
       );
 
-      const tables = [...Editor.nodes(editor, {
-        at: [],
-        match: n => n.type === defaultOptions.typeTable,
-      })];
+      const tables = [
+        ...Editor.nodes(editor, {
+          at: [],
+          match: n => n.type === defaultOptions.typeTable
+        })
+      ];
 
       tables.forEach(t => {
         if (!checkTableIsExist(editor, t)) {
@@ -40,47 +45,47 @@ const withTable = editor => {
     } else {
       exec(command);
     }
-  }
+  };
 
   editor.deleteFragment = (...args) => {
     const { selection } = editor;
     const [fragment] = Editor.fragment(editor, selection);
 
     if (fragment.type === defaultOptions.typeTable) {
-      const selectedCells = [...Editor.nodes(editor, {
-        match: n => n.selectionColor,
-      })];
+      const selectedCells = [
+        ...Editor.nodes(editor, {
+          match: n => n.selectionColor
+        })
+      ];
 
       selectedCells.forEach(([cell, path]) => {
-        const [content] = [...Editor.nodes(editor, {
-          at: path,
-          match: n => Text.isText(n),
-        })];
-        
-        Transforms.delete(
-          editor,
-          {
-            at: content[1],
-          }
-        );
+        const [content] = [
+          ...Editor.nodes(editor, {
+            at: path,
+            match: n => Text.isText(n)
+          })
+        ];
+
+        Transforms.delete(editor, {
+          at: content[1]
+        });
       });
 
       return;
     }
     deleteFragment(...args);
-  }
-    
+  };
+
   editor.deleteBackward = (...args) => {
     const { selection } = editor;
-    
+
     if (selection && Range.isCollapsed(selection)) {
       const match = Editor.above(editor, {
         match: n =>
-        n.type === defaultOptions.typeTable
-        || n.type === defaultOptions.typeRow
-        || n.type === defaultOptions.typeCell
-        || n.type === defaultOptions.typeContent
-        ,
+          n.type === defaultOptions.typeTable ||
+          n.type === defaultOptions.typeRow ||
+          n.type === defaultOptions.typeCell ||
+          n.type === defaultOptions.typeContent
       });
 
       if (match) {
@@ -98,11 +103,10 @@ const withTable = editor => {
         const isAfterTable = Editor.above(editor, {
           at: beforeLocation,
           match: n =>
-            n.type === defaultOptions.typeTable
-            || n.type === defaultOptions.typeRow
-            || n.type === defaultOptions.typeCell
-            || n.type === defaultOptions.typeContent
-          ,
+            n.type === defaultOptions.typeTable ||
+            n.type === defaultOptions.typeRow ||
+            n.type === defaultOptions.typeCell ||
+            n.type === defaultOptions.typeContent
         });
 
         if (isAfterTable) {
@@ -112,21 +116,25 @@ const withTable = editor => {
     }
 
     deleteBackward(...args);
-  }
+  };
 
   return editor;
-}
+};
 
 const TableToolbar = () => {
   const editor = useEditor();
   const TableToolbarBtn = ({ method, children }) => {
     return (
-      <button onMouseDown={event => {
-        event.preventDefault();
-        editor.exec({ type: TABLE_HANDLER, method });
-      }}>{children}</button>
-    )
-  }
+      <button
+        onMouseDown={event => {
+          event.preventDefault();
+          editor.exec({ type: TABLE_HANDLER, method });
+        }}
+      >
+        {children}
+      </button>
+    );
+  };
 
   return (
     <>
@@ -140,26 +148,21 @@ const TableToolbar = () => {
       <TableToolbarBtn method="removeColumn">Remove Column</TableToolbarBtn>
       <TableToolbarBtn method="removeRow">Remove Row</TableToolbarBtn>
       <TableToolbarBtn method="removeTable">Remove Table</TableToolbarBtn>
-      <TableToolbarBtn method="disableResizing">disable resizing</TableToolbarBtn>
-      <TableToolbarBtn method="enableResizing">enable resizing</TableToolbarBtn>
     </>
-  )
-}
+  );
+};
 
-const Table = props => <TableElement {...props} store={store} />
+const Table = props => <TableElement {...props} store={store} />;
 
 function checkTableIsExist(editor, table) {
-  const cells = [...Editor.nodes(editor, {
-    at: table[1],
-    match: n => n.type === defaultOptions.typeCell,
-  })];
+  const cells = [
+    ...Editor.nodes(editor, {
+      at: table[1],
+      match: n => n.type === defaultOptions.typeCell
+    })
+  ];
 
   return !!cells.length;
 }
 
-export {
-  withTable,
-  TableToolbar,
-  defaultOptions,
-  Table,
-}
+export { withTable, TableToolbar, defaultOptions, Table };
