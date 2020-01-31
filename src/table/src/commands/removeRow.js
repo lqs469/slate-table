@@ -7,7 +7,7 @@ export default function removeRow(editor, startKey, endKey) {
   const { table } = this;
   const { selection } = editor;
   if (!selection || !startKey || !endKey || !table) return;
-  
+
   const { gridTable } = splitedTable(editor, table);
   const yPosition = table[1].length;
 
@@ -28,7 +28,7 @@ export default function removeRow(editor, startKey, endKey) {
   splitCell.call({ table }, editor, splitStartKey, splitEndKey);
 
   const { gridTable: splitedGridTable } = splitedTable(editor, table);
-  
+
   const removedCells = splitedGridTable
     .slice(yStart, yEnd + 1)
     .reduce((p, c) => [...p, ...c], []);
@@ -46,15 +46,17 @@ export default function removeRow(editor, startKey, endKey) {
       if (n.type !== defaultOptions.typeRow) {
         return false;
       }
-      
+
       if (!n.children) {
         return true;
       }
 
-      const found = n.children.findIndex(col => col.type === defaultOptions.typeCell);
+      const found = n.children.findIndex(
+        col => col.type === defaultOptions.typeCell,
+      );
       if (found === -1) {
         return true;
       }
-    }
+    },
   });
 }

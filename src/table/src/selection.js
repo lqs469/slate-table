@@ -1,19 +1,21 @@
 // import { HistoryEditor } from 'slate-history';
-import { Transforms, Editor } from "slate";
-import { defaultOptions } from "./options";
+import { Transforms, Editor } from 'slate';
+import { defaultOptions } from './options';
 
 const insertStyleId = '__slate__table__id';
 
 export const splitedTable = (editor, table, startKey) => {
   if (typeof startKey === 'object') {
-    startKey = startKey[0].key
+    startKey = startKey[0].key;
   }
   const tableDepth = table[1].length;
 
-  const cells = [...Editor.nodes(editor, {
-    at: table[1],
-    match: n => n.type === defaultOptions.typeCell,
-  })].map(([cell, path]) => ({
+  const cells = [
+    ...Editor.nodes(editor, {
+      at: table[1],
+      match: n => n.type === defaultOptions.typeCell,
+    }),
+  ].map(([cell, path]) => ({
     cell,
     path,
     realPath: [...path],
@@ -51,8 +53,7 @@ export const splitedTable = (editor, table, startKey) => {
         gridTable[_y][_x] = {
           cell,
           path: [...realPath.slice(0, tableDepth), _y, _x],
-          isReal: (rowspan === 1 && colspan === 1)
-            || (_y === y && _x === x),
+          isReal: (rowspan === 1 && colspan === 1) || (_y === y && _x === x),
           // isSelected: !!cell.selectionColor,
           originPath: path,
         };
@@ -63,7 +64,7 @@ export const splitedTable = (editor, table, startKey) => {
         }
       }
     }
-  };
+  }
 
   const getCell = match => {
     const result = [];
@@ -76,7 +77,7 @@ export const splitedTable = (editor, table, startKey) => {
     });
 
     return result;
-  }
+  };
 
   return {
     insertPosition,
@@ -86,19 +87,21 @@ export const splitedTable = (editor, table, startKey) => {
     cellMap,
     cellReMap,
     getCell,
-  }
-}
+  };
+};
 
 export function addSelection(editor, startKey, targetKey) {
   removeSelection(editor);
   addSelectionStyle();
-  
+
   const { selection } = editor;
   if (!selection) return;
 
-  const [table] = [...Editor.nodes(editor, {
-    match: n => n.type === defaultOptions.typeTable,
-  })];
+  const [table] = [
+    ...Editor.nodes(editor, {
+      match: n => n.type === defaultOptions.typeTable,
+    }),
+  ];
   if (!table) return;
 
   const { gridTable, getCell } = splitedTable(editor, table);
@@ -106,7 +109,7 @@ export function addSelection(editor, startKey, targetKey) {
   let [head] = getCell(n => n.cell.key === startKey);
   let [tail] = getCell(n => n.cell.key === targetKey);
   if (!tail || !head) return;
-  
+
   const { path: tailPath } = tail;
   const { path: headPath } = head;
 
@@ -127,7 +130,7 @@ export function addSelection(editor, startKey, targetKey) {
         }
         return false;
       });
-  
+
       if (isOver < 0) {
         coverCellsPath.push(col);
       }
@@ -135,12 +138,16 @@ export function addSelection(editor, startKey, targetKey) {
   });
 
   coverCellsPath.forEach(({ originPath }) => {
-    Transforms.setNodes(editor, {
-      selectionColor: defaultOptions.selectionColor,
-    }, {
-      at: originPath,
-      match: n => n.type === defaultOptions.typeCell,
-    });
+    Transforms.setNodes(
+      editor,
+      {
+        selectionColor: defaultOptions.selectionColor,
+      },
+      {
+        at: originPath,
+        match: n => n.type === defaultOptions.typeCell,
+      },
+    );
   });
 
   return coverCellsPath;
@@ -178,7 +185,10 @@ export function addSelectionStyle() {
       const stylesheet = style.sheet;
 
       if (stylesheet) {
-        stylesheet.insertRule(`table *::selection { background: none; }`, stylesheet.cssRules.length);
+        stylesheet.insertRule(
+          `table *::selection { background: none; }`,
+          stylesheet.cssRules.length,
+        );
       }
     }
   }

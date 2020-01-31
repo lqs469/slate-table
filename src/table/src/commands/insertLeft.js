@@ -10,13 +10,12 @@ export default function insertLeft(editor, startKey, endKey) {
   const xPosition = table[1].length + 1;
 
   const { gridTable, getCell } = splitedTable(editor, table);
-  
+
   const [startCell] = getCell(n => n.cell.key === startKey);
   const [endCell] = getCell(n => n.cell.key === endKey);
-  
-  const insertPosition = startCell.path[xPosition] < endCell.path[xPosition]
-    ? startCell
-    : endCell;
+
+  const insertPosition =
+    startCell.path[xPosition] < endCell.path[xPosition] ? startCell : endCell;
 
   const x = insertPosition.path[xPosition];
 
@@ -28,8 +27,8 @@ export default function insertLeft(editor, startKey, endKey) {
     if (col.isReal) {
       insertCells.set(col.cell.key, col);
     } else {
-      const [originCell] = getCell(n =>
-        (n.cell.key === col.cell.key && n.isReal)
+      const [originCell] = getCell(
+        n => n.cell.key === col.cell.key && n.isReal,
       );
       const { cell, path } = originCell;
 
@@ -48,11 +47,13 @@ export default function insertLeft(editor, startKey, endKey) {
 
   insertCells.forEach(({ cell, isReal }) => {
     if (isReal) {
-      const [targetCell] = [...Editor.nodes(editor, {
-        at: table[1],
-        match: n => n.key === cell.key,
-      })];
-  
+      const [targetCell] = [
+        ...Editor.nodes(editor, {
+          at: table[1],
+          match: n => n.key === cell.key,
+        }),
+      ];
+
       const newCell = createCell({
         rowspan: cell.rowspan || 1,
       });
@@ -63,5 +64,3 @@ export default function insertLeft(editor, startKey, endKey) {
     }
   });
 }
-
-

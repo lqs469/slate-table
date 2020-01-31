@@ -33,8 +33,8 @@ export default function removeColumn(editor, startKey, endKey) {
     const [y, x] = n.path.slice(table[1].length, table[1].length + 2);
     if (y >= yStart && y <= yEnd && x >= xStart && x <= xEnd) {
       if (!n.isReal) {
-        const [sourceCell] = getCell(s =>
-          s.isReal && s.cell.key === n.cell.key
+        const [sourceCell] = getCell(
+          s => s.isReal && s.cell.key === n.cell.key,
         );
         sourceCells.set(n.cell.key, sourceCell);
       }
@@ -67,9 +67,8 @@ export default function removeColumn(editor, startKey, endKey) {
           newPath[yPosition] += i;
 
           const newCell = createCell({
-            elements: (i === 0 && j === colspan - 1)
-              ? children[0].children
-              : null
+            elements:
+              i === 0 && j === colspan - 1 ? children[0].children : null,
           });
 
           Transforms.insertNodes(editor, newCell, {

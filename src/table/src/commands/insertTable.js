@@ -5,11 +5,9 @@ function insertTable(editor, columns = 3, rows = 3) {
   const table = createTable(columns, rows);
   const p = {
     type: 'paragraph',
-    children: [
-      { text: '' },
-    ],
+    children: [{ text: '' }],
   };
-  
+
   Transforms.insertNodes(editor, [table, p]);
 }
 

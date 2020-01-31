@@ -19,13 +19,13 @@ export class ComponentStore {
   //   });
   // };
 
-  setAnchorCellBlock = (b) => (this.anchorCellBlock = b);
+  setAnchorCellBlock = b => (this.anchorCellBlock = b);
   getAnchorCellBlock = () => this.anchorCellBlock;
 
-  setFocusCellBlock = (b) => (this.focusCellBlock = b);
+  setFocusCellBlock = b => (this.focusCellBlock = b);
   getFocusCellBlock = () => this.focusCellBlock;
-  
-  setCellSelecting = (editor) => {
+
+  setCellSelecting = editor => {
     this.isCellSelecting = true;
     // Disable resizing when cell selection started
     const emitters = this.resizeDisableEmitterMap.get(editor) || [];
@@ -33,7 +33,7 @@ export class ComponentStore {
       e(true);
     });
   };
-  clearCellSelecting = (editor) => {
+  clearCellSelecting = editor => {
     this.isCellSelecting = false;
     const v = this.resizeDisableMap.get(editor);
     const emitters = this.resizeDisableEmitterMap.get(editor) || [];

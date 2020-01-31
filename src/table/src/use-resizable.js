@@ -2,7 +2,7 @@ import * as React from 'react';
 
 const handlerSelector = '[data-resize-handle]';
 
-export const useResizableTable = (props) => {
+export const useResizableTable = props => {
   const ref = React.useRef(null);
   const { onInit } = props;
 
@@ -10,14 +10,11 @@ export const useResizableTable = (props) => {
     if (!ref.current) return;
     const table = ref.current;
     const cells = Array.from(table.querySelectorAll('th, td'));
-    return cells.reduce(
-      (acc, cell) => {
-        if (!cell.dataset || !cell.dataset.key) return acc;
-        acc[cell.dataset.key] = cell.offsetWidth;
-        return acc;
-      },
-      {},
-    );
+    return cells.reduce((acc, cell) => {
+      if (!cell.dataset || !cell.dataset.key) return acc;
+      acc[cell.dataset.key] = cell.offsetWidth;
+      return acc;
+    }, {});
   };
 
   // React.useEffect(() => {
@@ -48,7 +45,7 @@ export const useResizableTable = (props) => {
     const table = ref.current;
     let isResizing = false;
 
-    const onTableMouseOver = (e) => {
+    const onTableMouseOver = e => {
       if (!e.target || !(e.target instanceof HTMLElement)) return;
       if (isResizing) return;
       const tagname = e.target.tagName.toLowerCase();
@@ -62,7 +59,7 @@ export const useResizableTable = (props) => {
       Array.from(firstRow.children).forEach(el => {
         el.style.position = 'relative';
         const range = getRangeXOf(el);
-        
+
         if (!range) return;
         getBoundaries(table).forEach(boundary => {
           if (boundary > range.start && boundary <= range.end) {
@@ -72,7 +69,7 @@ export const useResizableTable = (props) => {
             let resizedValues = {};
             let rows = [];
 
-            const onMouseDown = (e) => {
+            const onMouseDown = e => {
               e.preventDefault();
               if (!e.target || !(e instanceof MouseEvent)) return;
               removeHandles(table, e.target);
@@ -85,16 +82,28 @@ export const useResizableTable = (props) => {
               props.onResizeStart && props.onResizeStart(e);
             };
 
-            const onMouseMove = (e) => {
+            const onMouseMove = e => {
               if (!isResizing) return;
               let diffX = e.pageX - pageX;
-              resizedValues = updateCellWidths(table, rows, boundary, diffX, props.minimumCellWidth);
+              resizedValues = updateCellWidths(
+                table,
+                rows,
+                boundary,
+                diffX,
+                props.minimumCellWidth,
+              );
             };
 
-            const onMouseUp = (e) => {
+            const onMouseUp = e => {
               isResizing = false;
               const diffX = e.pageX - pageX;
-              resizedValues = updateCellWidths(table, rows, boundary, diffX, props.minimumCellWidth);
+              resizedValues = updateCellWidths(
+                table,
+                rows,
+                boundary,
+                diffX,
+                props.minimumCellWidth,
+              );
               props.onResizeStop && props.onResizeStop(e, resizedValues);
               pageX = 0;
               removeHandles(table, e.relatedTarget);
@@ -102,13 +111,13 @@ export const useResizableTable = (props) => {
               document.removeEventListener('mouseup', onMouseUp);
             };
 
-            const onMouseOut = (e) => {
+            const onMouseOut = e => {
               removeHandles(table, e.relatedTarget);
               document.removeEventListener('mouseout', onMouseOut);
               document.removeEventListener('mouseleave', onMouseLeave);
             };
 
-            const onMouseLeave = (e) => {
+            const onMouseLeave = e => {
               isResizing = false;
               removeHandles(table, e.relatedTarget);
               document.removeEventListener('mouseout', onMouseOut);
@@ -128,7 +137,7 @@ export const useResizableTable = (props) => {
       });
     };
 
-    const onTableMouseOut = (e) => {
+    const onTableMouseOut = e => {
       if (!(e.relatedTarget instanceof HTMLElement)) return;
       if (table.contains(e.relatedTarget)) return;
       table.querySelectorAll(handlerSelector).forEach(el => {
@@ -154,7 +163,7 @@ export const useResizableTable = (props) => {
 };
 
 /**
- * 
+ *
  * @param {Object} table table ref.
  * @param {Array} rows DOM structure with startX, width, colspan and ref.
  * @param {Number} boundary started position.
@@ -168,7 +177,12 @@ function updateCellWidths(table, rows, boundary, diffX, minimumWidth) {
     row.children.forEach((cell, colIndex) => {
       if (!cell.ref.dataset || !cell.ref.dataset.key) return;
       if (cell.x < boundary && cell.x + cell.width >= boundary) {
-        targets.push({ rowIndex, colIndex, colspan: cell.colspan, width: cell.width });
+        targets.push({
+          rowIndex,
+          colIndex,
+          colspan: cell.colspan,
+          width: cell.width,
+        });
       }
     });
   });
@@ -192,7 +206,8 @@ function updateCellWidths(table, rows, boundary, diffX, minimumWidth) {
     container.style.width = `${table.offsetWidth + 1}px`;
   }
 
-  const { value } = (rows || []).reduce((acc, row, rowIndex) => {
+  const { value } = (rows || []).reduce(
+    (acc, row, rowIndex) => {
       let hasCurrent = false;
       let hasNext = false;
 
@@ -202,7 +217,11 @@ function updateCellWidths(table, rows, boundary, diffX, minimumWidth) {
         if (saturated) return;
 
         // If col merged and move inner slider, keep width.
-        if (cell.colspan >= 2 && boundary < cell.x + cell.width && boundary > cell.x) {
+        if (
+          cell.colspan >= 2 &&
+          boundary < cell.x + cell.width &&
+          boundary > cell.x
+        ) {
           acc.value[cell.ref.dataset.key] = cell.width;
           cell.ref.style.width = `${cell.width}px`;
           return acc;
@@ -212,7 +231,10 @@ function updateCellWidths(table, rows, boundary, diffX, minimumWidth) {
         if (cell.x < boundary && cell.x + cell.width >= boundary) {
           if (!hasCurrent) {
             hasCurrent = true;
-            cell.ref.style.width = `${Math.max(cell.width + diffX, minimumWidth)}px`;
+            cell.ref.style.width = `${Math.max(
+              cell.width + diffX,
+              minimumWidth,
+            )}px`;
             acc.value[cell.ref.dataset.key] = cell.ref.offsetWidth;
             return acc;
           }
@@ -220,7 +242,10 @@ function updateCellWidths(table, rows, boundary, diffX, minimumWidth) {
 
         if (hasCurrent && !hasNext) {
           hasNext = true;
-          cell.ref.style.width = `${Math.max(cell.width - diffX - adjust, minimumWidth)}px`;
+          cell.ref.style.width = `${Math.max(
+            cell.width - diffX - adjust,
+            minimumWidth,
+          )}px`;
           acc.value[cell.ref.dataset.key] = cell.ref.offsetWidth;
           return acc;
         }
@@ -235,7 +260,6 @@ function updateCellWidths(table, rows, boundary, diffX, minimumWidth) {
     { value: {} },
   );
 
-  
   let tableWidth = 0;
   rows.forEach(row => {
     let rowWidth = 0;
@@ -243,7 +267,7 @@ function updateCellWidths(table, rows, boundary, diffX, minimumWidth) {
       rowWidth += cell.ref.width;
     });
     tableWidth = Math.max(tableWidth, rowWidth);
-  })
+  });
 
   return value;
 }

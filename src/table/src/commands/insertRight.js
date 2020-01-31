@@ -10,36 +10,31 @@ export default function insertRight(editor, startKey, endKey) {
   const xPosition = table[1].length + 1;
 
   const { gridTable, getCell } = splitedTable(editor, table);
-  
+
   const [startCell] = getCell(n => n.cell.key === startKey);
   const [endCell] = getCell(n => n.cell.key === endKey);
-  
-  const iP = startCell.path[xPosition] > endCell.path[xPosition]
-    ? startCell
-    : endCell;
-  
+
+  const iP =
+    startCell.path[xPosition] > endCell.path[xPosition] ? startCell : endCell;
+
   const x = iP.path[xPosition] + (iP.cell.colspan || 1) - 1;
-  
+
   const insertCellsMap = new Map();
   let checkInsertable = true;
 
   gridTable.forEach(row => {
     const col = row[x];
 
-    const [originCell] = getCell(n =>
-      (n.cell.key === col.cell.key && n.isReal)
-    );
+    const [originCell] = getCell(n => n.cell.key === col.cell.key && n.isReal);
     const { cell, path } = originCell;
 
     if (
-      (col.isReal && (!col.cell.colspan || col.cell.colspan === 1))
-      || !row[x + 1]
+      (col.isReal && (!col.cell.colspan || col.cell.colspan === 1)) ||
+      !row[x + 1]
     ) {
       insertCellsMap.set(cell.key, originCell);
     } else {
-      if (
-        path[xPosition] + (cell.colspan || 1) - 1 === x
-      ) {
+      if (path[xPosition] + (cell.colspan || 1) - 1 === x) {
         insertCellsMap.set(cell.key, originCell);
       } else {
         checkInsertable = false;
@@ -54,11 +49,13 @@ export default function insertRight(editor, startKey, endKey) {
 
   insertCellsMap.forEach(({ cell, isReal }) => {
     if (isReal) {
-      const [targetCell] = [...Editor.nodes(editor, {
-        at: table[1],
-        match: n => n.key === cell.key,
-      })];
-  
+      const [targetCell] = [
+        ...Editor.nodes(editor, {
+          at: table[1],
+          match: n => n.key === cell.key,
+        }),
+      ];
+
       const newCell = createCell({
         rowspan: cell.rowspan || 1,
       });
@@ -69,5 +66,3 @@ export default function insertRight(editor, startKey, endKey) {
     }
   });
 }
-
-

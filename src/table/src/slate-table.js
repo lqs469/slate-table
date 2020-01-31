@@ -17,24 +17,24 @@ const withTable = editor => {
     if (command.type === TABLE_HANDLER) {
       const [table] = [
         ...Editor.nodes(editor, {
-          match: n => n.type === defaultOptions.typeTable
-        })
+          match: n => n.type === defaultOptions.typeTable,
+        }),
       ];
 
       commands[command.method].call(
         {
-          table
+          table,
         },
         editor,
         store.getAnchorCellBlock(),
-        store.getFocusCellBlock()
+        store.getFocusCellBlock(),
       );
 
       const tables = [
         ...Editor.nodes(editor, {
           at: [],
-          match: n => n.type === defaultOptions.typeTable
-        })
+          match: n => n.type === defaultOptions.typeTable,
+        }),
       ];
 
       tables.forEach(t => {
@@ -54,20 +54,20 @@ const withTable = editor => {
     if (fragment.type === defaultOptions.typeTable) {
       const selectedCells = [
         ...Editor.nodes(editor, {
-          match: n => n.selectionColor
-        })
+          match: n => n.selectionColor,
+        }),
       ];
 
       selectedCells.forEach(([cell, path]) => {
         const [content] = [
           ...Editor.nodes(editor, {
             at: path,
-            match: n => Text.isText(n)
-          })
+            match: n => Text.isText(n),
+          }),
         ];
 
         Transforms.delete(editor, {
-          at: content[1]
+          at: content[1],
         });
       });
 
@@ -85,7 +85,7 @@ const withTable = editor => {
           n.type === defaultOptions.typeTable ||
           n.type === defaultOptions.typeRow ||
           n.type === defaultOptions.typeCell ||
-          n.type === defaultOptions.typeContent
+          n.type === defaultOptions.typeContent,
       });
 
       if (match) {
@@ -106,7 +106,7 @@ const withTable = editor => {
             n.type === defaultOptions.typeTable ||
             n.type === defaultOptions.typeRow ||
             n.type === defaultOptions.typeCell ||
-            n.type === defaultOptions.typeContent
+            n.type === defaultOptions.typeContent,
         });
 
         if (isAfterTable) {
@@ -158,8 +158,8 @@ function checkTableIsExist(editor, table) {
   const cells = [
     ...Editor.nodes(editor, {
       at: table[1],
-      match: n => n.type === defaultOptions.typeCell
-    })
+      match: n => n.type === defaultOptions.typeCell,
+    }),
   ];
 
   return !!cells.length;

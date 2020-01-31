@@ -6,7 +6,7 @@ import {
   Table,
   withTable,
   TableToolbar,
-  defaultOptions
+  defaultOptions,
 } from './src/slate-table';
 
 import initialValue from './initialValue';
@@ -23,7 +23,7 @@ export default function CustomEditor() {
   const renderLeaf = useCallback(props => <Leaf {...props} />, []);
   const editor = useMemo(
     () => withTable(withHistory(withReact(createEditor()))),
-    []
+    [],
   );
 
   return (
@@ -64,6 +64,6 @@ const Element = props => {
 
 const Leaf = ({
   attributes,
-  children
+  children,
   // leaf,
 }) => <span {...attributes}>{children}</span>;

@@ -11,13 +11,12 @@ export default function insertAbove(editor, startKey, endKey) {
   const yPosition = table[1].length;
 
   const { gridTable, getCell } = splitedTable(editor, table);
-  
+
   const [startCell] = getCell(n => n.cell.key === startKey);
   const [endCell] = getCell(n => n.cell.key === endKey);
-  
-  const insertPosition = startCell.path[yPosition] < endCell.path[yPosition]
-    ? startCell
-    : endCell;
+
+  const insertPosition =
+    startCell.path[yPosition] < endCell.path[yPosition] ? startCell : endCell;
 
   let checkInsertEnable = true;
   const insertCells = new Map();
@@ -45,13 +44,12 @@ export default function insertAbove(editor, startKey, endKey) {
   [...insertCells.values()].forEach((value, index) => {
     newRow.children[index].colspan = value.cell.colspan || 1;
   });
-  
+
   const [[, path]] = Editor.nodes(editor, {
     at: insertPosition.originPath,
     match: n => n.type === defaultOptions.typeRow,
   });
-  
-  
+
   Transforms.insertNodes(editor, newRow, {
     at: path,
   });

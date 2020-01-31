@@ -10,8 +10,8 @@ const updateWidth = (editor, value) => {
     const [block] = [
       ...Editor.nodes(editor, {
         at: [],
-        match: n => n.key === k
-      })
+        match: n => n.key === k,
+      }),
     ];
     if (!block) return;
 
@@ -22,13 +22,13 @@ const updateWidth = (editor, value) => {
       {
         data: {
           ...selectedData,
-          width: value[k]
-        }
+          width: value[k],
+        },
       },
       {
         at: [],
-        match: n => n.key === k
-      }
+        match: n => n.key === k,
+      },
     );
   });
 };
@@ -40,7 +40,7 @@ const Table = ({ onUpdate, store, children }) => {
     values => {
       onUpdate(editor, values);
     },
-    [editor, onUpdate]
+    [editor, onUpdate],
   );
 
   const onResizeStart = useCallback(
@@ -49,7 +49,7 @@ const Table = ({ onUpdate, store, children }) => {
       // editor.blur && editor.blur();
       removeSelection(editor);
     },
-    [editor]
+    [editor],
   );
 
   const onResizeStop = useCallback(
@@ -58,21 +58,21 @@ const Table = ({ onUpdate, store, children }) => {
       // editor.blur && editor.blur();
       onUpdate(editor, values);
     },
-    [editor, onUpdate]
+    [editor, onUpdate],
   );
 
   const { ref } = useResizableTable({
     minimumCellWidth: defaultOptions.minimumCellWidth,
     onResizeStart,
     onResizeStop,
-    onInit
+    onInit,
   });
 
   const onClearSelection = useCallback(
     e => {
       removeSelection(editor);
     },
-    [editor]
+    [editor],
   );
 
   useEffect(() => {
@@ -99,7 +99,7 @@ const Table = ({ onUpdate, store, children }) => {
         }
       }
     },
-    [holding, setHolding, store]
+    [holding, setHolding, store],
   );
 
   return (
@@ -139,7 +139,7 @@ const Table = ({ onUpdate, store, children }) => {
 const Cell = ({ node, dataKey, children }) => {
   const tdStyles = {
     width: `${node.data.width}px` || 'auto',
-    ...(node.data.style || {})
+    ...(node.data.style || {}),
   };
 
   if (node.selectionColor) {
