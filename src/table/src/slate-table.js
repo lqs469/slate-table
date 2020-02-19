@@ -22,9 +22,7 @@ const withTable = editor => {
       ];
 
       commands[command.method].call(
-        {
-          table,
-        },
+        { table },
         editor,
         store.getAnchorCellBlock(),
         store.getFocusCellBlock(),

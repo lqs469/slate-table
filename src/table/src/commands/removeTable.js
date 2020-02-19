@@ -3,6 +3,7 @@ import { defaultOptions } from '../options';
 
 export default function removeTable(editor) {
   let { table } = this;
+
   if (!table) {
     [table] = [
       ...Editor.nodes(editor, {
@@ -10,6 +11,8 @@ export default function removeTable(editor) {
       }),
     ];
   }
+
+  if (!table) return;
 
   Transforms.removeNodes(editor, {
     at: table[1],

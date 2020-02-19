@@ -1,7 +1,9 @@
 import { Transforms } from 'slate';
 import { createTable } from '../creator';
 
-function insertTable(editor, columns = 3, rows = 3) {
+function insertTable(editor) {
+  const columns = 3;
+  const rows = 3;
   const table = createTable(columns, rows);
   const p = {
     type: 'paragraph',
