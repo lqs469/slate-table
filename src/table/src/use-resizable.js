@@ -201,11 +201,6 @@ function updateCellWidths(table, rows, boundary, diffX, minimumWidth) {
     return p.width + diffX <= minimumWidth;
   }, false);
 
-  const container = table.closest('div');
-  if (table.offsetWidth >= container.offsetWidth) {
-    container.style.width = `${table.offsetWidth + 1}px`;
-  }
-
   const { value } = (rows || []).reduce(
     (acc, row, rowIndex) => {
       let hasCurrent = false;

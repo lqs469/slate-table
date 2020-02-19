@@ -1,11 +1,8 @@
-import { Range } from 'immutable';
 import { defaultOptions } from './options';
 import uuidv4 from 'uuid/v4';
 
 export function createTable(columns, rows) {
-  const rowNodes = Range(0, rows)
-    .map(() => createRow(columns))
-    .toArray();
+  const rowNodes = [...new Array(rows)].map(() => createRow(columns));
 
   return {
     type: defaultOptions.typeTable,
@@ -15,9 +12,7 @@ export function createTable(columns, rows) {
 }
 
 export function createRow(columns) {
-  const cellNodes = Range(0, columns)
-    .map(() => createCell())
-    .toArray();
+  const cellNodes = [...new Array(columns)].map(() => createCell());
 
   return {
     type: defaultOptions.typeRow,
