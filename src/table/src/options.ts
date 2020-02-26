@@ -1,4 +1,8 @@
-export const defaultOptions = {
+import { CSSProperties } from 'react';
+
+export const defaultOptions: {
+  [key: string]: any;
+} = {
   typeCell: 'editable_table_cell',
   typeRow: 'editable_table_row',
   typeTable: 'editable_table',
@@ -9,6 +13,6 @@ export const defaultOptions = {
     borderSpacing: 0,
     Layout: 'fixed',
     wordBreak: 'break-word',
-  },
+  } as CSSProperties,
   defaultColumnWidth: 100,
 };

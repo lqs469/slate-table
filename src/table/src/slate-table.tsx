@@ -1,6 +1,6 @@
-import React from 'react';
-import { Editor, Range, Point, Transforms, Text } from 'slate';
-import { useEditor } from 'slate-react';
+import React, { ReactNode } from 'react';
+import { Editor, Range, Point, Transforms, Text, NodeEntry } from 'slate';
+import { useEditor, RenderElementProps, ReactEditor } from 'slate-react';
 import { defaultOptions } from './options';
 import { TableElement } from './renderers';
 import { ComponentStore } from './store';
@@ -10,16 +10,16 @@ import removeTable from './commands/removeTable';
 const TABLE_HANDLER = 'table_handler';
 const store = new ComponentStore();
 
-const withTable = editor => {
+const withTable = (editor: ReactEditor): ReactEditor => {
   const { exec, deleteBackward, deleteFragment } = editor;
 
-  editor.exec = command => {
+  editor.exec = (command: { type: string; method: string }) => {
     if (command.type === TABLE_HANDLER) {
-      const [table] = [
-        ...Editor.nodes(editor, {
+      const [table] = Array.from(
+        Editor.nodes(editor, {
           match: n => n.type === defaultOptions.typeTable,
         }),
-      ];
+      );
 
       commands[command.method].call(
         { table },
@@ -28,14 +28,12 @@ const withTable = editor => {
         store.getFocusCellBlock(),
       );
 
-      const tables = [
-        ...Editor.nodes(editor, {
-          at: [],
-          match: n => n.type === defaultOptions.typeTable,
-        }),
-      ];
+      const tables = Editor.nodes(editor, {
+        at: [],
+        match: n => n.type === defaultOptions.typeTable,
+      });
 
-      tables.forEach(t => {
+      Array.from(tables).forEach((t: NodeEntry) => {
         if (!checkTableIsExist(editor, t)) {
           removeTable.call({ table }, editor);
         }
@@ -46,31 +44,25 @@ const withTable = editor => {
   };
 
   editor.deleteFragment = (...args) => {
-    const { selection } = editor;
-    const [fragment] = Editor.fragment(editor, selection);
+    const selectedCells = Array.from(
+      Editor.nodes(editor, {
+        match: n => n.selectionColor,
+      }),
+    );
 
-    if (fragment.type === defaultOptions.typeTable) {
-      const selectedCells = [
-        ...Editor.nodes(editor, {
-          match: n => n.selectionColor,
+    selectedCells.forEach(([cell, path]) => {
+      const [content] = Array.from(
+        Editor.nodes(editor, {
+          at: path,
+          match: n => Text.isText(n),
         }),
-      ];
+      );
 
-      selectedCells.forEach(([cell, path]) => {
-        const [content] = [
-          ...Editor.nodes(editor, {
-            at: path,
-            match: n => Text.isText(n),
-          }),
-        ];
-
-        Transforms.delete(editor, {
-          at: content[1],
-        });
+      Transforms.delete(editor, {
+        at: content[1],
       });
+    });
 
-      return;
-    }
     deleteFragment(...args);
   };
 
@@ -121,15 +113,15 @@ const withTable = editor => {
 
 const TableToolbar = () => {
   const editor = useEditor();
-  const TableToolbarBtn = ({ method, children }) => {
+  const TableToolbarBtn = (props: { method: string; children: ReactNode }) => {
     return (
       <button
         onMouseDown={event => {
           event.preventDefault();
-          editor.exec({ type: TABLE_HANDLER, method });
+          editor.exec({ type: TABLE_HANDLER, method: props.method });
         }}
       >
-        {children}
+        {props.children}
       </button>
     );
   };
@@ -150,15 +142,17 @@ const TableToolbar = () => {
   );
 };
 
-const Table = props => <TableElement {...props} store={store} />;
+const Table: (props: RenderElementProps) => any = props => (
+  <TableElement {...props} store={store} />
+);
 
-function checkTableIsExist(editor, table) {
-  const cells = [
-    ...Editor.nodes(editor, {
+function checkTableIsExist(editor: Editor, table: NodeEntry) {
+  const cells = Array.from(
+    Editor.nodes(editor, {
       at: table[1],
       match: n => n.type === defaultOptions.typeCell,
     }),
-  ];
+  );
 
   return !!cells.length;
 }

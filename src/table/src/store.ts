@@ -1,6 +1,11 @@
+import { ReactEditor } from 'slate-react';
+
 export class ComponentStore {
   // INFO: Use MAP with editor as key
   //       This is needed to support multi editor and singleton plugin.
+  anchorCellBlock: string | null = null;
+  focusCellBlock: string | null = null;
+
   resizeDisableMap = new Map();
   resizeDisableEmitterMap = new Map();
   isCellSelecting = false;
@@ -19,25 +24,25 @@ export class ComponentStore {
   //   });
   // };
 
-  setAnchorCellBlock = b => (this.anchorCellBlock = b);
+  setAnchorCellBlock = (b: string | null) => (this.anchorCellBlock = b);
   getAnchorCellBlock = () => this.anchorCellBlock;
 
-  setFocusCellBlock = b => (this.focusCellBlock = b);
+  setFocusCellBlock = (b: string | null) => (this.focusCellBlock = b);
   getFocusCellBlock = () => this.focusCellBlock;
 
-  setCellSelecting = editor => {
+  setCellSelecting = (editor: ReactEditor) => {
     this.isCellSelecting = true;
     // Disable resizing when cell selection started
     const emitters = this.resizeDisableEmitterMap.get(editor) || [];
-    emitters.forEach(e => {
+    emitters.forEach((e: any) => {
       e(true);
     });
   };
-  clearCellSelecting = editor => {
+  clearCellSelecting = (editor: ReactEditor) => {
     this.isCellSelecting = false;
     const v = this.resizeDisableMap.get(editor);
     const emitters = this.resizeDisableEmitterMap.get(editor) || [];
-    emitters.forEach(e => {
+    emitters.forEach((e: any) => {
       e(!!v);
     });
   };

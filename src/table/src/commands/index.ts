@@ -8,11 +8,18 @@ import removeColumn from './removeColumn';
 import removeRow from './removeRow';
 import mergeSelection from './mergeSelection';
 import splitCell from './splitCell';
+import { Editor } from 'slate';
 
-export default {
+const commands: {
+  [key: string]: (
+    editor: Editor,
+    startKey?: string | null,
+    endKey?: string | null,
+  ) => any;
+} = {
   insertTable,
-  insertBelow,
   insertAbove,
+  insertBelow,
   insertRight,
   insertLeft,
   removeTable,
@@ -21,3 +28,5 @@ export default {
   mergeSelection,
   splitCell,
 };
+
+export default commands;

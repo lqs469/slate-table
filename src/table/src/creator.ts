@@ -1,7 +1,7 @@
 import { defaultOptions } from './options';
-import uuidv4 from 'uuid/v4';
+import uuidv4 from 'uuid';
 
-export function createTable(columns, rows) {
+export function createTable(columns: number, rows: number) {
   const rowNodes = [...new Array(rows)].map(() => createRow(columns));
 
   return {
@@ -11,7 +11,7 @@ export function createTable(columns, rows) {
   };
 }
 
-export function createRow(columns) {
+export function createRow(columns: number) {
   const cellNodes = [...new Array(columns)].map(() => createCell());
 
   return {
@@ -22,7 +22,17 @@ export function createRow(columns) {
   };
 }
 
-export function createCell({ elements, data = {}, colspan, rowspan } = {}) {
+export function createCell({
+  elements,
+  data = {},
+  colspan,
+  rowspan,
+}: {
+  elements?: Node;
+  data?: any;
+  colspan?: number;
+  rowspan?: number;
+} = {}) {
   const { typeCell, typeContent, defaultColumnWidth } = defaultOptions;
 
   return {

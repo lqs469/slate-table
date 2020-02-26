@@ -1,21 +1,26 @@
 // import { HistoryEditor } from 'slate-history';
-import { Transforms, Editor } from 'slate';
+import { Transforms, Editor, NodeEntry } from 'slate';
 import { defaultOptions } from './options';
+import { ReactEditor } from 'slate-react';
 
 const insertStyleId = '__slate__table__id';
 
-export const splitedTable = (editor, table, startKey) => {
+export const splitedTable = (
+  editor: ReactEditor,
+  table: NodeEntry,
+  startKey?: { key: any }[] | undefined,
+) => {
   if (typeof startKey === 'object') {
     startKey = startKey[0].key;
   }
   const tableDepth = table[1].length;
 
-  const cells = [
-    ...Editor.nodes(editor, {
+  const cells = Array.from(
+    Editor.nodes(editor, {
       at: table[1],
       match: n => n.type === defaultOptions.typeCell,
     }),
-  ].map(([cell, path]) => ({
+  ).map(([cell, path]) => ({
     cell,
     path,
     realPath: [...path],
@@ -24,7 +29,7 @@ export const splitedTable = (editor, table, startKey) => {
 
   const cellMap = {};
   const cellReMap = {};
-  const gridTable = [];
+  const gridTable: any[] = [];
   let insertPosition = null;
 
   for (let i = 0; i < cells.length; i++) {
@@ -66,11 +71,13 @@ export const splitedTable = (editor, table, startKey) => {
     }
   }
 
-  const getCell = match => {
-    const result = [];
+  const getCell = (
+    match?: (arg0: { cell: { key: string } }) => boolean,
+  ): any[] => {
+    const result: any[] = [];
     gridTable.forEach(row => {
-      row.forEach(col => {
-        if (match(col)) {
+      row.forEach((col: any) => {
+        if (match && match(col)) {
           result.push(col);
         }
       });
@@ -90,22 +97,27 @@ export const splitedTable = (editor, table, startKey) => {
   };
 };
 
-export function addSelection(editor, startKey, targetKey) {
+export function addSelection(
+  editor: ReactEditor,
+  startKey: string | null,
+  targetKey: string | null,
+) {
   removeSelection(editor);
   addSelectionStyle();
 
   const { selection } = editor;
   if (!selection) return;
 
-  const [table] = [
-    ...Editor.nodes(editor, {
+  const [table] = Array.from(
+    Editor.nodes(editor, {
       match: n => n.type === defaultOptions.typeTable,
     }),
-  ];
+  );
   if (!table) return;
 
   const { gridTable, getCell } = splitedTable(editor, table);
 
+  if (!getCell || !gridTable) return;
   let [head] = getCell(n => n.cell.key === startKey);
   let [tail] = getCell(n => n.cell.key === targetKey);
   if (!tail || !head) return;
@@ -113,18 +125,18 @@ export function addSelection(editor, startKey, targetKey) {
   const { path: tailPath } = tail;
   const { path: headPath } = head;
 
-  headPath.forEach((item, index) => {
+  headPath.forEach((item: number, index: number) => {
     headPath[index] = Math.min(item, tailPath[index]);
     tailPath[index] = Math.max(item, tailPath[index]);
   });
 
-  const coverCellsPath = [];
+  const coverCellsPath: any[] = [];
 
   gridTable.forEach(row => {
-    row.forEach(col => {
+    row.forEach((col: { path: number[] }) => {
       const { path } = col;
 
-      const isOver = path.findIndex((item, index) => {
+      const isOver = path.findIndex((item: number, index: number) => {
         if (item < headPath[index] || item > tailPath[index]) {
           return true;
         }
@@ -153,7 +165,7 @@ export function addSelection(editor, startKey, targetKey) {
   return coverCellsPath;
 }
 
-export function removeSelection(editor) {
+export function removeSelection(editor: ReactEditor) {
   Transforms.unsetNodes(editor, 'selectionColor', {
     at: [],
     match: n => !!n.selectionColor,
@@ -185,9 +197,9 @@ export function addSelectionStyle() {
       const stylesheet = style.sheet;
 
       if (stylesheet) {
-        stylesheet.insertRule(
+        (stylesheet as CSSStyleSheet).insertRule(
           `table *::selection { background: none; }`,
-          stylesheet.cssRules.length,
+          (stylesheet as CSSStyleSheet).cssRules.length,
         );
       }
     }

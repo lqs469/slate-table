@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { createEditor } from 'slate';
-import { Slate, Editable, withReact } from 'slate-react';
+import { createEditor, Node } from 'slate';
+import { Slate, Editable, withReact, RenderElementProps } from 'slate-react';
 import { withHistory } from 'slate-history';
 import {
   Table,
@@ -12,12 +12,26 @@ import {
 import initialValue from './initialValue';
 import './index.css';
 
-import * as _slate from 'slate';
-import * as _react_slate from 'slate-react';
-console.log(_slate, _react_slate);
+const Element = (props: RenderElementProps) => {
+  const { attributes, children, element } = props;
+
+  switch (element.type) {
+    case defaultOptions.typeTable:
+    case defaultOptions.typeRow:
+    case defaultOptions.typeCell:
+    case defaultOptions.typeContent:
+      return <Table {...props} />;
+    default:
+      return <p {...attributes}>{children}</p>;
+  }
+};
+
+const Leaf = (props: RenderElementProps) => (
+  <span {...props.attributes}>{props.children}</span>
+);
 
 export default function CustomEditor() {
-  const [value, setValue] = useState(initialValue);
+  const [value, setValue] = useState<Node[]>(initialValue);
 
   const renderElement = useCallback(props => <Element {...props} />, []);
   const renderLeaf = useCallback(props => <Leaf {...props} />, []);
@@ -36,6 +50,7 @@ export default function CustomEditor() {
         }}
       >
         <TableToolbar />
+        <hr />
         <Editable
           renderElement={renderElement}
           renderLeaf={renderLeaf}
@@ -47,23 +62,3 @@ export default function CustomEditor() {
     </div>
   );
 }
-
-const Element = props => {
-  const { attributes, children, element } = props;
-
-  switch (element.type) {
-    case defaultOptions.typeTable:
-    case defaultOptions.typeRow:
-    case defaultOptions.typeCell:
-    case defaultOptions.typeContent:
-      return <Table {...props} />;
-    default:
-      return <p {...attributes}>{children}</p>;
-  }
-};
-
-const Leaf = ({
-  attributes,
-  children,
-  // leaf,
-}) => <span {...attributes}>{children}</span>;

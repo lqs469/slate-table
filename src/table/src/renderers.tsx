@@ -1,18 +1,18 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Editor, Transforms } from 'slate';
-import { useEditor } from 'slate-react';
+import { Editor, Transforms, Node } from 'slate';
+import { useEditor, RenderElementProps, ReactEditor } from 'slate-react';
 import { removeSelection, addSelection } from './selection';
 import { useResizableTable } from './use-resizable';
 import { defaultOptions } from './options';
 
-const updateWidth = (editor, value) => {
+const updateWidth = (editor: Editor, value: { [x: string]: any }) => {
   Object.keys(value).forEach(k => {
-    const [block] = [
-      ...Editor.nodes(editor, {
+    const [block] = Array.from(
+      Editor.nodes(editor, {
         at: [],
         match: n => n.key === k,
       }),
-    ];
+    );
     if (!block) return;
 
     const selectedData = block[0].data;
@@ -33,7 +33,12 @@ const updateWidth = (editor, value) => {
   });
 };
 
-const Table = ({ onUpdate, store, children }) => {
+const Table: (props: {
+  editor: ReactEditor;
+  onUpdate: any;
+  store: any;
+  children: Node[];
+}) => any = ({ onUpdate, store, children }) => {
   const editor = useEditor();
 
   const onInit = useCallback(
@@ -83,7 +88,7 @@ const Table = ({ onUpdate, store, children }) => {
   }, [onClearSelection]);
 
   const [holding, setHolding] = useState(false);
-  const [startKey, setStartKey] = useState(null);
+  const [startKey, setStartKey] = useState<string | null>(null);
 
   const onSelected = useCallback(
     ({ target }) => {
@@ -111,7 +116,7 @@ const Table = ({ onUpdate, store, children }) => {
       onMouseDown={({ target }) => {
         if (target) {
           setHolding(true);
-          const cell = target.closest('td');
+          const cell = (target as HTMLButtonElement).closest('td');
           if (cell) {
             const startKey = cell.getAttribute('data-key');
             setStartKey(startKey);
@@ -121,7 +126,7 @@ const Table = ({ onUpdate, store, children }) => {
       }}
       onMouseMove={({ target }) => {
         if (holding && target) {
-          const cell = target.closest('td');
+          const cell = (target as HTMLButtonElement).closest('td');
           if (cell) {
             const endKey = cell.getAttribute('data-key');
             addSelection(editor, startKey, endKey);
@@ -136,7 +141,13 @@ const Table = ({ onUpdate, store, children }) => {
   );
 };
 
-const Cell = ({ node, dataKey, children }) => {
+const Cell: (props: {
+  editor: ReactEditor;
+  node: any;
+  dataKey: string;
+  children: Node[];
+  store: any;
+}) => any = ({ node, dataKey, children }) => {
   const tdStyles = {
     width: `${node.data.width}px` || 'auto',
     ...(node.data.style || {}),
@@ -159,7 +170,9 @@ const Cell = ({ node, dataKey, children }) => {
   );
 };
 
-export const TableElement = props => {
+export const TableElement: (
+  props: RenderElementProps & { store: any },
+) => any = props => {
   const { store, children, element } = props;
   const editor = useEditor();
 
