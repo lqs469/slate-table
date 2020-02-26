@@ -12,6 +12,9 @@ import {
 import initialValue from './initialValue';
 import './index.css';
 
+import * as _slate from 'slate';
+console.log(_slate);
+
 const Element = (props: RenderElementProps) => {
   const { attributes, children, element } = props;
 

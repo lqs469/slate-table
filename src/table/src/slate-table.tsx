@@ -44,24 +44,18 @@ const withTable = (editor: ReactEditor): ReactEditor => {
   };
 
   editor.deleteFragment = (...args) => {
-    const selectedCells = Array.from(
+    const includeTable = Array.from(
       Editor.nodes(editor, {
-        match: n => n.selectionColor,
+        match: n => n.type === defaultOptions.typeTable,
       }),
     );
 
-    selectedCells.forEach(([cell, path]) => {
-      const [content] = Array.from(
-        Editor.nodes(editor, {
-          at: path,
-          match: n => Text.isText(n),
-        }),
-      );
-
-      Transforms.delete(editor, {
-        at: content[1],
+    if (includeTable.length) {
+      Transforms.removeNodes(editor, {
+        match: Text.isText,
       });
-    });
+      return;
+    }
 
     deleteFragment(...args);
   };

@@ -25,7 +25,7 @@ export default [
                 children: [
                   {
                     type: 'paragraph',
-                    children: [{ text: 'Lorem ipsum...' }],
+                    children: [{ text: 'a1' }],
                   },
                 ],
               },
