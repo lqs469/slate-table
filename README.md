@@ -1,8 +1,8 @@
 # Slate-table
 
-editable table plugin for Slate.js (version > 0.4, Perhaps compatible with the latest version)
+**WIP, welcome contribution**
 
-**This repo is still developing, welcome to contribute.**
+Editable table for Slate.js (version > 0.5, slate.js APIs is still changing, So maybe not compatible with the latest version.)
 
 ## Demo
 
