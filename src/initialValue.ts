@@ -1,43 +1,51 @@
 export default [
   {
     type: 'paragraph',
-    children: [{ text: 'Lorem ipsum...' }],
-  },
-  {
-    type: 'editable_table',
-    data: {},
     children: [
       {
-        type: 'editable_table_row',
+        text:
+          'Consequat qui anim Lorem aute exercitation dolor adipisicing officia consectetur cillum. Ut dolor ullamco est consectetur. Et enim dolore reprehenderit laborum cillum veniam mollit qui proident occaecat et sunt fugiat. Reprehenderit velit exercitation ullamco nisi quis adipisicing nostrud id qui occaecat culpa culpa velit. Mollit officia dolore proident mollit dolor sit adipisicing cillum sunt veniam sint deserunt ex. Exercitation amet ea ut aliqua magna tempor sunt sint nisi tempor exercitation Lorem culpa.',
+      },
+    ],
+  },
+  {
+    type: 'table',
+    children: [
+      {
+        type: 'table-row',
         key: 'row_0',
         children: [
           {
-            type: 'editable_table_cell',
+            type: 'table-cell',
             key: 'cell_0',
-            data: {
-              width: 200,
-            },
+            width: 200,
+            height: 100,
             rowspan: 2,
             colspan: 2,
             children: [
               {
-                type: 'editable_table_content',
+                type: 'table-content',
                 children: [
                   {
                     type: 'paragraph',
-                    children: [{ text: 'a1' }],
+                    children: [
+                      {
+                        text:
+                          'Elit voluptate deserunt aliqua officia eiusmod qui deserunt id. Cupidatat aute elit qui ad nostrud non cillum eiusmod sit ut anim nulla nisi. Pariatur aute anim aliqua in consequat. Et irure sit adipisicing incididunt ad enim aliqua ea occaecat irure aliquip. Amet dolor fugiat consequat anim ad. Aliqua nisi velit id ipsum. Commodo reprehenderit minim irure duis elit commodo.',
+                      },
+                    ],
                   },
                 ],
               },
             ],
           },
           // {
-          //   "type": "editable_table_cell",
+          //   "type": "table-cell",
           //   key: 'cell_1',
           //   // rowspan: 2,
           //   "children": [
           //     {
-          //       "type": "editable_table_content",
+          //       "type": "table-content",
           //       "children": [
           //         { text: 'a1' },
           //       ]
@@ -48,11 +56,11 @@ export default [
           //   }
           // },
           {
-            type: 'editable_table_cell',
+            type: 'table-cell',
             key: 'cell_2',
             children: [
               {
-                type: 'editable_table_content',
+                type: 'table-content',
                 children: [
                   {
                     type: 'paragraph',
@@ -61,23 +69,21 @@ export default [
                 ],
               },
             ],
-            data: {
-              width: 15,
-            },
+            width: 15,
           },
         ],
         data: {},
       },
       {
-        type: 'editable_table_row',
+        type: 'table-row',
         key: 'row_1',
         children: [
           // {
-          //   "type": "editable_table_cell",
+          //   "type": "table-cell",
           //   key: 'cell_3',
           //   "children": [
           //     {
-          //       "type": "editable_table_content",
+          //       "type": "table-content",
           //       "children": [
           //         {
           //           type: 'paragraph',
@@ -93,12 +99,12 @@ export default [
           //   }
           // },
           // {
-          //   "type": "editable_table_cell",
+          //   "type": "table-cell",
           //   key: 'cell_4',
           //   // colspan: 2,
           //   "children": [
           //     {
-          //       "type": "editable_table_content",
+          //       "type": "table-content",
           //       "children": [
           //         {
           //           type: 'paragraph',
@@ -114,11 +120,11 @@ export default [
           //   }
           // },
           {
-            type: 'editable_table_cell',
+            type: 'table-cell',
             key: 'cell_5',
             children: [
               {
-                type: 'editable_table_content',
+                type: 'table-content',
                 children: [
                   {
                     type: 'paragraph',
@@ -127,23 +133,21 @@ export default [
                 ],
               },
             ],
-            data: {
-              width: 200,
-            },
+            width: 200,
           },
         ],
         data: {},
       },
       {
-        type: 'editable_table_row',
+        type: 'table-row',
         key: 'row_2',
         children: [
           {
-            type: 'editable_table_cell',
+            type: 'table-cell',
             key: 'cell_6',
             children: [
               {
-                type: 'editable_table_content',
+                type: 'table-content',
                 children: [
                   {
                     type: 'paragraph',
@@ -152,17 +156,15 @@ export default [
                 ],
               },
             ],
-            data: {
-              width: 100,
-            },
+            width: 100,
           },
           {
-            type: 'editable_table_cell',
+            type: 'table-cell',
             key: 'cell_7',
             colspan: 2,
             children: [
               {
-                type: 'editable_table_content',
+                type: 'table-content',
                 children: [
                   {
                     type: 'paragraph',
@@ -171,16 +173,14 @@ export default [
                 ],
               },
             ],
-            data: {
-              width: 200,
-            },
+            width: 200,
           },
           // {
-          //   "type": "editable_table_cell",
+          //   "type": "table-cell",
           //   key: 'cell_8',
           //   "children": [
           //     {
-          //       "type": "editable_table_content",
+          //       "type": "table-content",
           //       "children": [
           //         {
           //           type: 'paragraph',
@@ -199,15 +199,15 @@ export default [
         data: {},
       },
       {
-        type: 'editable_table_row',
+        type: 'table-row',
         key: 'row_3',
         children: [
           {
-            type: 'editable_table_cell',
+            type: 'table-cell',
             key: 'cell_9',
             children: [
               {
-                type: 'editable_table_content',
+                type: 'table-content',
                 children: [
                   {
                     type: 'paragraph',
@@ -216,16 +216,14 @@ export default [
                 ],
               },
             ],
-            data: {
-              width: 15,
-            },
+            width: 15,
           },
           {
-            type: 'editable_table_cell',
+            type: 'table-cell',
             key: 'cell_10',
             children: [
               {
-                type: 'editable_table_content',
+                type: 'table-content',
                 children: [
                   {
                     type: 'paragraph',
@@ -234,16 +232,14 @@ export default [
                 ],
               },
             ],
-            data: {
-              width: 200,
-            },
+            width: 200,
           },
           {
-            type: 'editable_table_cell',
+            type: 'table-cell',
             key: 'cell_11',
             children: [
               {
-                type: 'editable_table_content',
+                type: 'table-content',
                 children: [
                   {
                     type: 'paragraph',
@@ -252,17 +248,15 @@ export default [
                 ],
               },
             ],
-            data: {
-              width: 200,
-            },
+            width: 200,
           },
         ],
         data: {},
       },
     ],
   },
-  {
-    type: 'paragraph',
-    children: [{ text: '' }],
-  },
+  // {
+  //   type: 'paragraph',
+  //   children: [{ text: 'Tail' }],
+  // },
 ];

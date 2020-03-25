@@ -115,7 +115,7 @@ export const useResizableTable = (props: {
                   rows,
                   boundary,
                   diffX,
-                  props.minimumCellWidth,
+                  props.minimumCellWidth
                 );
               };
 
@@ -127,7 +127,7 @@ export const useResizableTable = (props: {
                   rows,
                   boundary,
                   diffX,
-                  props.minimumCellWidth,
+                  props.minimumCellWidth
                 );
                 props.onResizeStop && props.onResizeStop(e, resizedValues);
                 pageX = 0;
@@ -201,7 +201,7 @@ function updateCellWidths(
   rows: any[],
   boundary: number,
   diffX: number,
-  minimumWidth: number,
+  minimumWidth: number
 ) {
   // Find target cells
   let targets: {
@@ -219,7 +219,7 @@ function updateCellWidths(
           width: any;
           colspan: any;
         },
-        colIndex: any,
+        colIndex: any
       ) => {
         if (!cell.ref.dataset || !cell.ref.dataset.key) return;
         if (cell.x < boundary && cell.x + cell.width >= boundary) {
@@ -230,7 +230,7 @@ function updateCellWidths(
             width: cell.width,
           });
         }
-      },
+      }
     );
   });
 
@@ -252,7 +252,7 @@ function updateCellWidths(
     (
       acc: { value: { [x: string]: any } },
       row: { children: any[] },
-      rowIndex: any,
+      rowIndex: any
     ) => {
       let hasCurrent = false;
       let hasNext = false;
@@ -289,7 +289,7 @@ function updateCellWidths(
               hasCurrent = true;
               cell.ref.style.width = `${Math.max(
                 cell.width + diffX,
-                minimumWidth,
+                minimumWidth
               )}px`;
               acc.value[cell.ref.dataset.key] = cell.ref.offsetWidth;
               return acc;
@@ -300,7 +300,7 @@ function updateCellWidths(
             hasNext = true;
             cell.ref.style.width = `${Math.max(
               cell.width - diffX - adjust,
-              minimumWidth,
+              minimumWidth
             )}px`;
             acc.value[cell.ref.dataset.key] = cell.ref.offsetWidth;
             return acc;
@@ -309,12 +309,12 @@ function updateCellWidths(
           cell.ref.style.width = `${cell.width}px`;
           acc.value[cell.ref.dataset.key] = cell.width;
           return acc;
-        },
+        }
       );
 
       return acc;
     },
-    { value: {} },
+    { value: {} }
   );
 
   let tableWidth = 0;
@@ -358,7 +358,7 @@ function createRowData(table: HTMLElement) {
           children: { x: any; width: any; colspan: any; ref: any }[];
           x: any;
         },
-        cell: { width: any; cell: { colSpan: number } },
+        cell: { width: any; cell: { colSpan: number } }
       ) => {
         const w = cell.width;
         const colspan = cell.cell.colSpan || 1;
@@ -366,7 +366,7 @@ function createRowData(table: HTMLElement) {
         acc.x += w;
         return acc;
       },
-      { children: [], x: 0 },
+      { children: [], x: 0 }
     );
     return { ref: row, children };
   });
@@ -428,7 +428,7 @@ function getRows(table: HTMLElement) {
       acc.rows.push(cell.parentElement);
       return acc;
     },
-    { m: new Map(), rows: [] as HTMLElement[] },
+    { m: new Map(), rows: [] as HTMLElement[] }
   );
   return rows;
 }
@@ -452,7 +452,7 @@ function getRangeXOf(cell: HTMLTableCellElement) {
       acc.reached = acc.reached || e === cell;
       return acc;
     },
-    { range: { start: 0, end: 0 }, reached: false },
+    { range: { start: 0, end: 0 }, reached: false }
   );
   return range;
 }

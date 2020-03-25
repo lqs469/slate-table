@@ -1,0 +1,25 @@
+.table {
+  margin: 4px 0;
+  overflow: auto;
+  border: solid 1px #000;
+}
+.table-tr {
+  border: none;
+}
+.table-td {
+  padding: 0;
+  box-sizing: border-box;
+  border: solid 1px #000;
+  vertical-align: baseline;
+  min-width: 32px;
+}
+.table-td ::selection {
+  color: inherit;
+  background: none;
+}
+.table-td.selectedCell {
+  background: #b9d3fc;
+}
+.table-content {
+  overflow: auto;
+}

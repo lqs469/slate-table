@@ -1,3 +1,12 @@
 body {
   margin: 0;
 }
+
+.editor-box {
+  margin: 20px auto;
+  width: 800px;
+}
+
+.toolbar {
+  margin: 10px 0;
+}
