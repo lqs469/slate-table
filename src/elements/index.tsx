@@ -70,7 +70,6 @@ const maybePreserveSpace = (
 
   if (PreserveSpaceBefore.has(type)) {
     if (path[path.length - 1] === 0) {
-      console.log('preserve space before', path);
       insertParagraph(editor, path);
       preserved = true;
     } else {
