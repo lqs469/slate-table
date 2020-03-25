@@ -1,9 +1,16 @@
 # Slate-table
 
-**WIP, welcome contribution**
+A pretty Slate.js table plugin (Slate.js version > 0.5)
 
-Editable table for Slate.js (version > 0.5, slate.js APIs is still changing, So maybe not compatible with the latest version.)
+Online demo: [https://slate-table.now.sh](https://slate-table.now.sh)
 
-## Demo
+features:
+- Resize height and width
+- Append row, column below, above, left and right
+- Remove rows, columns
+- Merge selected cells
+- Split selected cells
 
-[https://slate-table.now.sh](https://slate-table.now.sh)
+![](./demo.jpg)
+
+
