@@ -28,15 +28,20 @@ export function mergeSelection(table: NodeEntry, editor: Editor) {
         col.cell.key !== insertPositionCol.cell.key &&
         col.isReal
       ) {
-        const currContent = col.cell.children;
-        if (Editor.string(editor, col.originPath)) {
-          tmpContent[col.cell.key] = currContent;
-        }
-
-        Transforms.removeNodes(editor, {
-          at: table[1],
+        const [node] = Editor.nodes(editor, {
           match: n => n.key === col.cell.key,
         });
+
+        if (node) {
+          if (Editor.string(editor, node[1])) {
+            tmpContent[col.cell.key] = node[0].children;
+          }
+
+          Transforms.removeNodes(editor, {
+            at: table[1],
+            match: n => n.key === col.cell.key,
+          });
+        }
       }
     });
   });
@@ -52,7 +57,7 @@ export function mergeSelection(table: NodeEntry, editor: Editor) {
     {
       at: table[1],
       match: n => n.key === insertPositionCol.cell.key,
-    }
+    },
   );
 
   Transforms.removeNodes(editor, {
@@ -99,7 +104,7 @@ export function mergeSelection(table: NodeEntry, editor: Editor) {
           {
             at: table[1],
             match: n => n.key === cell.key,
-          }
+          },
         );
       });
     }
@@ -136,7 +141,7 @@ export function mergeSelection(table: NodeEntry, editor: Editor) {
           {
             at: table[1],
             match: n => n.key === cell.key,
-          }
+          },
         );
       }
     }
