@@ -30,6 +30,7 @@ export function mergeSelection(table: NodeEntry, editor: Editor) {
       ) {
         const [node] = Editor.nodes(editor, {
           match: n => n.key === col.cell.key,
+          at: [],
         });
 
         if (node) {

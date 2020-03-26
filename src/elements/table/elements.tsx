@@ -342,6 +342,7 @@ const CellComponent: React.FC<{
       data-key={dataKey}
       colSpan={node.colspan}
       rowSpan={node.rowspan}
+      onDragStart={e => e.preventDefault()}
       style={{
         position: 'relative',
         minWidth: '50px',

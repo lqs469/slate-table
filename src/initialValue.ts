@@ -19,7 +19,6 @@ export default [
             type: 'table-cell',
             key: 'cell_0',
             width: 200,
-            height: 100,
             rowspan: 2,
             colspan: 2,
             children: [
@@ -69,7 +68,7 @@ export default [
                 ],
               },
             ],
-            width: 15,
+            width: 100,
           },
         ],
         data: {},
@@ -133,7 +132,6 @@ export default [
                 ],
               },
             ],
-            width: 200,
           },
         ],
         data: {},
@@ -205,6 +203,7 @@ export default [
           {
             type: 'table-cell',
             key: 'cell_9',
+            width: 100,
             children: [
               {
                 type: 'table-content',
@@ -216,11 +215,11 @@ export default [
                 ],
               },
             ],
-            width: 15,
           },
           {
             type: 'table-cell',
             key: 'cell_10',
+            colspan: 1,
             children: [
               {
                 type: 'table-content',
@@ -232,7 +231,6 @@ export default [
                 ],
               },
             ],
-            width: 200,
           },
           {
             type: 'table-cell',
@@ -248,10 +246,8 @@ export default [
                 ],
               },
             ],
-            width: 200,
           },
         ],
-        data: {},
       },
     ],
   },

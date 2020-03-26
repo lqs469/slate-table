@@ -76,6 +76,8 @@ export const TableCardbar: React.FC<TableCardbarProps> = props => {
   );
 };
 
+let startFromX = 0;
+
 export const HorizontalToolbar: React.FC<{
   table: HTMLElement;
   tableNode: NodeEntry;
@@ -83,6 +85,7 @@ export const HorizontalToolbar: React.FC<{
   const ref = useRef<HTMLDivElement>(null);
   const editor = useEditor();
   const [cols, setCols] = useState<{ width: number; el: HTMLElement[] }[]>([]);
+  const widthFnObject = {};
 
   useEffect(() => {
     const { gridTable = [] } = splitedTable(editor, tableNode);
@@ -92,6 +95,8 @@ export const HorizontalToolbar: React.FC<{
     for (let i = 0; i < gridTable[0].length; i++) {
       for (let j = 0; j < gridTable.length; j++) {
         const currCol = gridTable[j][i];
+        if (!currCol) continue;
+
         const td = table.querySelector(
           `[data-key=${currCol.cell.key}]`,
         ) as HTMLElement;
@@ -105,11 +110,9 @@ export const HorizontalToolbar: React.FC<{
           };
         }
 
-        if (currCol.isReal) {
-          colsArray[i].width = !colsArray[i].width
-            ? td.offsetWidth
-            : Math.min(colsArray[i].width, td.offsetWidth);
-        }
+        colsArray[i].width = !colsArray[i].width
+          ? td.offsetWidth + td.offsetLeft
+          : Math.min(colsArray[i].width, td.offsetWidth + td.offsetLeft);
 
         if (
           colsArray[i].el.findIndex(
@@ -121,62 +124,71 @@ export const HorizontalToolbar: React.FC<{
       }
     }
 
-    setCols(() => colsArray);
+    for (let i = 1; i < colsArray.length; i++) {
+      const leftSumWidth = colsArray
+        .slice(0, i)
+        .reduce((p, c) => p + c.width, 0);
+      colsArray[i].width = colsArray[i].width - leftSumWidth;
+    }
+    setCols(colsArray.filter(item => item.width));
   }, [editor, table, tableNode]);
 
   const maxWidth = useMemo(() => table.closest('div')?.offsetWidth, [table]);
 
-  const [startFromX, setStartFromX] = useState<number>(0);
-
-  const onHandleDragStart = useCallback((e: React.MouseEvent) => {
-    setStartFromX(e.clientX);
-  }, []);
-
   const onHandleDrag = useCallback(
-    (item: { width: number; el: HTMLElement[] }, index: number) => (
-      e: React.MouseEvent,
-    ) => {
-      const changedWidth = e.clientX - startFromX;
-
-      if (!changedWidth || !e.clientX) {
-        return;
+    ({ item, index }) => {
+      if (widthFnObject[index]) {
+        return widthFnObject[index];
       }
 
-      const tableWidthAfterChanged = table.offsetWidth + changedWidth;
+      const fn = function(e: React.MouseEvent) {
+        const changedWidth = e.clientX - startFromX;
 
-      if (item.el && maxWidth && tableWidthAfterChanged < maxWidth) {
-        const dragger = ref.current?.querySelector(
-          `#horizontal-dragger-item-${index}`,
-        ) as HTMLElement;
-        const draggerWidth = dragger.offsetWidth;
-
-        if (draggerWidth + changedWidth > options.defaultWidth) {
-          dragger.style.width = `${draggerWidth + changedWidth}px`;
+        if (!changedWidth || !e.clientX) {
+          return;
         }
 
-        const savedChangedWidth = [];
-        let moreThanMinWidth = true;
-        for (const cell of item.el) {
-          if (cell.offsetWidth + changedWidth <= options.defaultWidth) {
-            moreThanMinWidth = false;
-            break;
+        const tableWidthAfterChanged = table.offsetWidth + changedWidth;
+
+        if (item.el && maxWidth && tableWidthAfterChanged < maxWidth) {
+          const dragger = ref.current?.querySelector(
+            `#horizontal-dragger-item-${index}`,
+          ) as HTMLElement;
+
+          if (!dragger) return;
+          const draggerWidth = dragger.offsetWidth;
+
+          if (draggerWidth + changedWidth > options.defaultWidth) {
+            dragger.style.width = `${draggerWidth + changedWidth}px`;
           }
-          savedChangedWidth.push({
-            target: cell,
-            width: cell.offsetWidth + changedWidth,
-          });
+
+          const savedChangedWidth = [];
+          let moreThanMinWidth = true;
+          for (const cell of item.el) {
+            if (cell.offsetWidth + changedWidth <= options.defaultWidth) {
+              moreThanMinWidth = false;
+              break;
+            }
+            savedChangedWidth.push({
+              target: cell,
+              width: cell.offsetWidth + changedWidth,
+            });
+          }
+
+          if (moreThanMinWidth) {
+            savedChangedWidth.forEach(item => {
+              item.target.style.width = `${item.width}px`;
+            });
+          }
         }
 
-        if (moreThanMinWidth) {
-          savedChangedWidth.forEach(item => {
-            item.target.style.width = `${item.width}px`;
-          });
-        }
-      }
+        startFromX = e.clientX;
+      };
 
-      setStartFromX(e.clientX);
+      widthFnObject[index] = fn;
+      return widthFnObject[index];
     },
-    [startFromX, maxWidth, table],
+    [maxWidth, table, widthFnObject],
   );
 
   const onHandleDragEnd = useCallback(
@@ -205,6 +217,7 @@ export const HorizontalToolbar: React.FC<{
           width: draggerWidth,
           el: item.el,
         };
+
         setCols(() => newCols);
       }
     },
@@ -223,15 +236,29 @@ export const HorizontalToolbar: React.FC<{
           <div
             className="table-trigger"
             draggable
-            onDragStart={onHandleDragStart}
-            onDrag={onHandleDrag(item, index)}
-            onDragEnd={onHandleDragEnd(item, index)}
+            onMouseDown={e => {
+              startFromX = e.clientX;
+              document.body.addEventListener(
+                'dragover',
+                onHandleDrag({ item, index }),
+                false,
+              );
+            }}
+            onDragEnd={() => {
+              document.body.removeEventListener(
+                'dragover',
+                onHandleDrag({ item, index }),
+              );
+              onHandleDragEnd(item, index);
+            }}
           ></div>
         </div>
       ))}
     </div>
   );
 };
+
+let startFromY = 0;
 
 export const VerticalToolbar: React.FC<{
   table: HTMLElement;
@@ -240,6 +267,7 @@ export const VerticalToolbar: React.FC<{
   const ref = useRef<HTMLDivElement>(null);
   const editor = useEditor();
   const [rows, setRows] = useState<{ height: number; el: HTMLElement[] }[]>([]);
+  const heightFnObject = {};
 
   useEffect(() => {
     const { gridTable = [] } = splitedTable(editor, tableNode);
@@ -282,62 +310,67 @@ export const VerticalToolbar: React.FC<{
     setRows(() => rowsArray);
   }, [editor, table, tableNode]);
 
-  const [startFromY, setStartFromY] = useState<number>(0);
-
-  const onHandleDragStart = useCallback((e: React.MouseEvent) => {
-    setStartFromY(e.clientY);
-  }, []);
-
   const onHandleDrag = useCallback(
-    (item: { height: number; el: HTMLElement[] }, index: number) => (
-      e: React.MouseEvent,
-    ) => {
-      const changedHeight = e.clientY - startFromY;
-
-      if (!changedHeight || !e.clientY) {
-        return;
+    ({ item, index }) => {
+      if (heightFnObject[index]) {
+        return heightFnObject[index];
       }
 
-      if (item.el) {
-        const minHeight = options.defaultHeight;
+      const fn = function(e: React.MouseEvent | MouseEvent) {
+        const changedHeight = e.clientY - startFromY;
 
-        const dragger = ref.current?.querySelector(
-          `#vertical-dragger-item-${index}`,
-        ) as HTMLElement;
-        const draggerHeight = dragger.offsetHeight;
-
-        if (draggerHeight + changedHeight > minHeight) {
-          dragger.style.height = `${draggerHeight + changedHeight}px`;
+        if (!changedHeight || !e.clientY) {
+          return;
         }
 
-        const savedChangedHeight = [];
-        let moreThanMinHeight = true;
-        for (const cell of item.el) {
-          if (cell.offsetHeight + changedHeight < minHeight) {
-            moreThanMinHeight = false;
-            break;
+        if (item.el) {
+          const minHeight = options.defaultHeight;
+
+          const dragger = ref.current?.querySelector(
+            `#vertical-dragger-item-${index}`,
+          ) as HTMLElement;
+
+          if (!dragger) return;
+          const draggerHeight = dragger.offsetHeight;
+
+          if (draggerHeight + changedHeight > minHeight) {
+            dragger.style.height = `${draggerHeight + changedHeight}px`;
           }
 
-          savedChangedHeight.push({
-            td: cell,
-            height: cell.offsetHeight + changedHeight,
-          });
+          const savedChangedHeight = [];
+          let moreThanMinHeight = true;
+          for (const cell of item.el) {
+            if (cell.offsetHeight + changedHeight < minHeight) {
+              moreThanMinHeight = false;
+              break;
+            }
+
+            savedChangedHeight.push({
+              td: cell,
+              height: cell.offsetHeight + changedHeight,
+            });
+          }
+
+          if (moreThanMinHeight) {
+            savedChangedHeight.forEach(item => {
+              console.log(item.td.dataset.key);
+              item.td.style.height = `${item.height}px`;
+            });
+          }
         }
 
-        if (moreThanMinHeight) {
-          savedChangedHeight.forEach(item => {
-            item.td.style.height = `${item.height}px`;
-          });
-        }
-      }
+        startFromY = e.clientY;
+      };
 
-      setStartFromY(e.clientY);
+      heightFnObject[index] = fn;
+
+      return heightFnObject[index];
     },
-    [startFromY],
+    [heightFnObject],
   );
 
   const onHandleDragEnd = useCallback(
-    (item: { height: number; el: HTMLElement[] }, index: number) => () => {
+    (item: { height: number; el: HTMLElement[] }, index: number) => {
       if (item.el) {
         for (const cell of item.el) {
           Transforms.setNodes(
@@ -355,6 +388,7 @@ export const VerticalToolbar: React.FC<{
         const dragger = ref.current?.querySelector(
           `#vertical-dragger-item-${index}`,
         ) as HTMLElement;
+
         const draggerHeight = dragger.offsetHeight;
 
         const newRows = Array.from(rows);
@@ -362,6 +396,7 @@ export const VerticalToolbar: React.FC<{
           height: draggerHeight,
           el: item.el,
         };
+
         setRows(() => newRows);
       }
     },
@@ -380,9 +415,24 @@ export const VerticalToolbar: React.FC<{
           <div
             className="table-trigger"
             draggable
-            onDragStart={onHandleDragStart}
-            onDrag={onHandleDrag(item, index)}
-            onDragEnd={onHandleDragEnd(item, index)}
+            onMouseDown={e => {
+              startFromY = e.clientY;
+              document.body.addEventListener(
+                'dragover',
+                onHandleDrag({ item, index }),
+                false,
+              );
+            }}
+            onDragEnd={() => {
+              console.log('drag end');
+              document.body.removeEventListener(
+                'dragover',
+                onHandleDrag({ item, index }),
+                false,
+              );
+
+              onHandleDragEnd(item, index);
+            }}
           ></div>
         </div>
       ))}
