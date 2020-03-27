@@ -24,7 +24,6 @@ export const withTable = (editor: Editor) => {
   const { addMark, removeMark, deleteBackward, deleteFragment } = editor;
 
   editor.addMark = (key, value) => {
-    console.log(editor.selection);
     if (editor.selection) {
       const lastSelection = editor.selection;
 
@@ -33,18 +32,25 @@ export const withTable = (editor: Editor) => {
         at: [],
       });
 
-      if (selectedCells) {
-        for (let cell of selectedCells) {
-          const [content] = Editor.nodes(editor, {
-            match: n => n.type === 'table-content',
-            at: cell[1],
-          });
+      let isTable = false;
 
-          if (Editor.string(editor, content[1]) !== '') {
-            Transforms.setSelection(editor, Editor.range(editor, cell[1]));
-            addMark(key, value);
-          }
+      for (let cell of selectedCells) {
+        if (!isTable) {
+          isTable = true;
         }
+
+        const [content] = Editor.nodes(editor, {
+          match: n => n.type === 'table-content',
+          at: cell[1],
+        });
+
+        if (Editor.string(editor, content[1]) !== '') {
+          Transforms.setSelection(editor, Editor.range(editor, cell[1]));
+          addMark(key, value);
+        }
+      }
+
+      if (isTable) {
         Transforms.select(editor, lastSelection);
         return;
       }
@@ -63,18 +69,24 @@ export const withTable = (editor: Editor) => {
         at: [],
       });
 
-      if (selectedCells) {
-        for (let cell of selectedCells) {
-          const [content] = Editor.nodes(editor, {
-            match: n => n.type === 'table-content',
-            at: cell[1],
-          });
-
-          if (Editor.string(editor, content[1]) !== '') {
-            Transforms.setSelection(editor, Editor.range(editor, cell[1]));
-            removeMark(key);
-          }
+      let isTable = false;
+      for (let cell of selectedCells) {
+        if (!isTable) {
+          isTable = true;
         }
+
+        const [content] = Editor.nodes(editor, {
+          match: n => n.type === 'table-content',
+          at: cell[1],
+        });
+
+        if (Editor.string(editor, content[1]) !== '') {
+          Transforms.setSelection(editor, Editor.range(editor, cell[1]));
+          removeMark(key);
+        }
+      }
+
+      if (isTable) {
         Transforms.select(editor, lastSelection);
         return;
       }
