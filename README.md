@@ -13,4 +13,5 @@ features:
 
 ![](./demo.jpg)
 
-
+### License
+MIT.
